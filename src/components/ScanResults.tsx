@@ -56,6 +56,35 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
         </div>
       </div>
 
+      {scan.risk_path && (
+        <div className="mb-6 rounded-xl border border-[var(--line)] bg-white px-5 py-4">
+          <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
+            How this could be abused
+          </h3>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            High-level story for your team — not an exploit guide.
+          </p>
+          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-[var(--ink)]">
+            {scan.risk_path
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .map((line, i) => {
+                const isPriority = line.toLowerCase().startsWith("priority fix");
+                const cleaned = line.replace(/^\d+[.)]\s*/, "");
+                if (isPriority) {
+                  return (
+                    <li key={i} className="list-none -ml-5 mt-2 font-medium text-[var(--brand-deep)]">
+                      {cleaned}
+                    </li>
+                  );
+                }
+                return <li key={i}>{cleaned}</li>;
+              })}
+          </ol>
+        </div>
+      )}
+
       {scan.fingerprint && Object.keys(scan.fingerprint).length > 0 && (
         <div className="mb-6 rounded-xl border border-[var(--line)] bg-white px-4 py-3 font-mono text-xs text-[var(--muted)]">
           fingerprint: {JSON.stringify(scan.fingerprint)}
@@ -92,7 +121,17 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
                 {f.evidence_snippet}
               </pre>
             )}
-            {f.fix && <p className="mt-3 text-sm text-[var(--ink)]"><span className="font-semibold">Fix:</span> {f.fix}</p>}
+            {f.explanation && (
+              <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">
+                <span className="font-semibold text-[var(--brand-deep)]">Why it matters:</span>{" "}
+                {f.explanation}
+              </p>
+            )}
+            {f.fix && (
+              <p className="mt-2 text-sm leading-relaxed text-[var(--ink)]">
+                <span className="font-semibold">Fix:</span> {f.fix}
+              </p>
+            )}
           </li>
         ))}
       </ul>

@@ -4,6 +4,7 @@ export type Finding = {
   title: string;
   evidence_url?: string | null;
   evidence_snippet?: string | null;
+  explanation?: string | null;
   fix?: string | null;
   tags?: string[];
 };
@@ -16,6 +17,7 @@ export type Scan = {
   finished_at?: string | null;
   fingerprint?: Record<string, unknown>;
   findings?: Finding[];
+  risk_path?: string | null;
   error?: string | null;
 };
 
