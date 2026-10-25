@@ -34,15 +34,26 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
             {findings.length} total · {scan.status}
           </p>
         </div>
-        {report && (
-          <a
-            href={`/api/scans/${scan.id}/report`}
-            download={`scanlead-${scan.id}.md`}
-            className="rounded-lg border border-[var(--line)] bg-white px-4 py-2 text-sm font-medium text-[var(--brand-deep)] transition hover:border-[var(--brand)]"
-          >
-            Download report.md
-          </a>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {report && (
+            <a
+              href={`/api/scans/${scan.id}/report`}
+              download={`scanlead-${scan.id}.md`}
+              className="rounded-lg border border-[var(--line)] bg-white px-4 py-2 text-sm font-medium text-[var(--brand-deep)] transition hover:border-[var(--brand)]"
+            >
+              Download report.md
+            </a>
+          )}
+          {scan.status === "done" && (
+            <a
+              href={`/api/scans/${scan.id}/audit`}
+              download={`scanlead-${scan.id}-audit.json`}
+              className="rounded-lg border border-[var(--line)] bg-white px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:border-[var(--brand)] hover:text-[var(--brand-deep)]"
+            >
+              Download audit.json
+            </a>
+          )}
+        </div>
       </div>
 
       {scan.fingerprint && Object.keys(scan.fingerprint).length > 0 && (
