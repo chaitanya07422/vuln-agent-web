@@ -1,102 +1,120 @@
-import Image from "next/image";
+import { SiteHeader } from "@/components/SiteHeader";
+import { ScanForm } from "@/components/ScanForm";
+
+const CHECKS = [
+  { title: "Recon & fingerprint", body: "Headers, tech tags, and surface map before deeper probes." },
+  { title: "Leaks & config", body: ".env, git metadata, backups, docs, and tech-specific paths." },
+  { title: "Auth surfaces", body: "Public user enum and XML-RPC-style endpoints when the stack matches." },
+  { title: "CORS & APIs", body: "Origin reflection and publicly reachable API documentation." },
+  { title: "Upload & staging", body: "Unauth upload gates and staging hosts linked from production." },
+  { title: "Ports & mail", body: "One-shot port presence and mail-related host resolution." },
+];
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="relative min-h-screen overflow-x-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background: `
+            radial-gradient(1000px 520px at 12% -8%, var(--mesh-a) 0%, transparent 58%),
+            radial-gradient(800px 420px at 92% 4%, #cfe4da 0%, transparent 52%),
+            linear-gradient(180deg, #eef6f1 0%, var(--bg) 42%, #f7faf8 100%)
+          `,
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.35]"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.55), transparent 70%)",
+        }}
+      />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+      <SiteHeader />
+
+      <main>
+        <section className="mx-auto flex min-h-[calc(100vh-5.5rem)] w-full max-w-6xl flex-col justify-center px-5 pb-16 pt-6 sm:px-8">
+          <p className="animate-rise font-mono text-xs font-medium uppercase tracking-[0.18em] text-[var(--brand)]">
+            Authorized external checks
+          </p>
+          <h1 className="animate-rise-delay mt-4 max-w-3xl font-[family-name:var(--font-display)] text-5xl leading-[1.05] tracking-tight text-[var(--ink)] sm:text-6xl md:text-7xl">
+            ScanLead
+          </h1>
+          <p className="animate-rise-delay mt-5 max-w-xl text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
+            Paste a URL you own. Specialist agents run one-shot exposure checks and return a
+            company-ready security brief — no account required.
+          </p>
+
+          <div id="scan" className="mt-10 max-w-3xl scroll-mt-24">
+            <ScanForm />
+          </div>
+        </section>
+
+        <section id="checks" className="border-t border-[var(--line)] bg-white/70 py-20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+              What we check
+            </h2>
+            <p className="mt-3 max-w-2xl text-[var(--muted)]">
+              Detect exposure. Do not exploit. Each pack is a short, auditable probe — not a
+              long-running attack job.
+            </p>
+            <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {CHECKS.map((item) => (
+                <div key={item.title}>
+                  <h3 className="text-lg font-semibold text-[var(--ink)]">{item.title}</h3>
+                  <p className="mt-2 text-[var(--muted)] leading-relaxed">{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="method" className="border-t border-[var(--line)] py-20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+              Built for trust
+            </h2>
+            <div className="mt-10 grid gap-8 md:grid-cols-3">
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">01</p>
+                <h3 className="mt-2 text-lg font-semibold">Ownership attestation</h3>
+                <p className="mt-2 text-[var(--muted)] leading-relaxed">
+                  Every scan requires an explicit checkbox that you own or are authorized to test
+                  the target.
+                </p>
+              </div>
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">02</p>
+                <h3 className="mt-2 text-lg font-semibold">One-shot probes</h3>
+                <p className="mt-2 text-[var(--muted)] leading-relaxed">
+                  No credential stuffing, no multi-minute sprays. Findings come from limited HTTP,
+                  DNS, and port checks.
+                </p>
+              </div>
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">03</p>
+                <h3 className="mt-2 text-lg font-semibold">Company-ready brief</h3>
+                <p className="mt-2 text-[var(--muted)] leading-relaxed">
+                  Severity, evidence links, fixes, and a retest checklist you can share with your
+                  team.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="border-t border-[var(--line)] bg-white py-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <span className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]">ScanLead</span>
+          <p>Use only on systems you are authorized to assess.</p>
+        </div>
       </footer>
     </div>
   );
