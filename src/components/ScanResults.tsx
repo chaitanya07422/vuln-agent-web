@@ -17,10 +17,16 @@ function sevClass(sev: string) {
 }
 
 export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
-  const findings = [...(scan.findings || [])].sort(
-    (a, b) => ORDER.indexOf(a.severity as (typeof ORDER)[number]) - ORDER.indexOf(b.severity as (typeof ORDER)[number]),
-  );
+  const findings = [...(scan.findings || [])]
+    .filter((f) => f.severity !== "info" && f.agent !== "reporter")
+    .sort(
+      (a, b) =>
+        ORDER.indexOf(a.severity as (typeof ORDER)[number]) -
+        ORDER.indexOf(b.severity as (typeof ORDER)[number]),
+    );
   const actionable = findings.filter((f) => ["critical", "high", "medium"].includes(f.severity));
+  const summary = scan.summary;
+  const allClear = Boolean(summary?.all_clear);
 
   return (
     <section className="mt-10 animate-rise">
@@ -30,8 +36,10 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
             Results
           </h2>
           <p className="mt-1 text-[var(--muted)]">
-            {actionable.length} priority finding{actionable.length === 1 ? "" : "s"} ·{" "}
-            {findings.length} total · {scan.status}
+            {allClear
+              ? "No issues in this detect-only pass"
+              : `${actionable.length} priority · ${findings.length} listed`}{" "}
+            · {scan.status}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -56,7 +64,46 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
         </div>
       </div>
 
-      {scan.risk_path && (
+      {summary && (
+        <div
+          className={`mb-6 rounded-xl border px-5 py-4 ${
+            allClear
+              ? "border-emerald-200 bg-emerald-50/60"
+              : "border-[var(--line)] bg-white"
+          }`}
+        >
+          <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
+            Summary
+          </h3>
+          {summary.stack && (
+            <p className="mt-1 text-xs text-[var(--muted)]">Stack: {summary.stack}</p>
+          )}
+          <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">{summary.headline}</p>
+
+          {summary.agents && summary.agents.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {summary.agents.map((row) => (
+                <li
+                  key={row.agent}
+                  className="flex flex-col gap-0.5 border-t border-[var(--line)] pt-2 text-sm sm:flex-row sm:items-baseline sm:gap-3"
+                >
+                  <span
+                    className={`shrink-0 text-xs font-semibold uppercase tracking-wide ${
+                      row.status === "attention" ? "text-[var(--warn)]" : "text-[var(--brand-deep)]"
+                    }`}
+                  >
+                    {row.status === "attention" ? "Attention" : "Clear"}
+                  </span>
+                  <span className="font-medium text-[var(--ink)]">{row.label}</span>
+                  <span className="text-[var(--muted)]">{row.note}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {scan.risk_path && !allClear && (
         <div className="mb-6 rounded-xl border border-[var(--line)] bg-white px-5 py-4">
           <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
             How this could be abused
@@ -85,56 +132,52 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
         </div>
       )}
 
-      {scan.fingerprint && Object.keys(scan.fingerprint).length > 0 && (
-        <div className="mb-6 rounded-xl border border-[var(--line)] bg-white px-4 py-3 font-mono text-xs text-[var(--muted)]">
-          fingerprint: {JSON.stringify(scan.fingerprint)}
-        </div>
+      {findings.length > 0 && (
+        <ul className="flex flex-col gap-3">
+          {findings.map((f: Finding, i: number) => (
+            <li
+              key={`${f.agent}-${f.title}-${i}`}
+              className="rounded-xl border border-[var(--line)] bg-white px-5 py-4"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-md border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${sevClass(f.severity)}`}
+                >
+                  {f.severity}
+                </span>
+                <span className="font-mono text-xs text-[var(--muted)]">{f.agent}</span>
+              </div>
+              <h3 className="mt-2 text-lg font-semibold text-[var(--ink)]">{f.title}</h3>
+              {f.evidence_url && (
+                <a
+                  href={f.evidence_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-block break-all font-mono text-xs text-[var(--brand)]"
+                >
+                  {f.evidence_url}
+                </a>
+              )}
+              {f.evidence_snippet && (
+                <pre className="mt-3 overflow-x-auto rounded-lg bg-[var(--bg)] p-3 font-mono text-xs text-[var(--muted)] whitespace-pre-wrap">
+                  {f.evidence_snippet}
+                </pre>
+              )}
+              {f.explanation && (
+                <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">
+                  <span className="font-semibold text-[var(--brand-deep)]">Why it matters:</span>{" "}
+                  {f.explanation}
+                </p>
+              )}
+              {f.fix && (
+                <p className="mt-2 text-sm leading-relaxed text-[var(--ink)]">
+                  <span className="font-semibold">Fix:</span> {f.fix}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
-
-      <ul className="flex flex-col gap-3">
-        {findings.map((f: Finding, i: number) => (
-          <li
-            key={`${f.agent}-${f.title}-${i}`}
-            className="rounded-xl border border-[var(--line)] bg-white px-5 py-4"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-md border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${sevClass(f.severity)}`}
-              >
-                {f.severity}
-              </span>
-              <span className="font-mono text-xs text-[var(--muted)]">{f.agent}</span>
-            </div>
-            <h3 className="mt-2 text-lg font-semibold text-[var(--ink)]">{f.title}</h3>
-            {f.evidence_url && (
-              <a
-                href={f.evidence_url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-block break-all font-mono text-xs text-[var(--brand)]"
-              >
-                {f.evidence_url}
-              </a>
-            )}
-            {f.evidence_snippet && (
-              <pre className="mt-3 overflow-x-auto rounded-lg bg-[var(--bg)] p-3 font-mono text-xs text-[var(--muted)] whitespace-pre-wrap">
-                {f.evidence_snippet}
-              </pre>
-            )}
-            {f.explanation && (
-              <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">
-                <span className="font-semibold text-[var(--brand-deep)]">Why it matters:</span>{" "}
-                {f.explanation}
-              </p>
-            )}
-            {f.fix && (
-              <p className="mt-2 text-sm leading-relaxed text-[var(--ink)]">
-                <span className="font-semibold">Fix:</span> {f.fix}
-              </p>
-            )}
-          </li>
-        ))}
-      </ul>
 
       {report && (
         <details className="mt-8 rounded-xl border border-[var(--line)] bg-white p-4">

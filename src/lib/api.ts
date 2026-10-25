@@ -9,6 +9,25 @@ export type Finding = {
   tags?: string[];
 };
 
+export type AgentSummaryRow = {
+  agent: string;
+  label: string;
+  status: "clear" | "attention" | string;
+  note: string;
+};
+
+export type ScanSummary = {
+  verdict?: "looks_solid" | "minor_notes" | "issues_found" | string;
+  headline?: string;
+  all_clear?: boolean;
+  stack?: string;
+  agents?: AgentSummaryRow[];
+  clean?: string[];
+  attention?: string[];
+  priority_count?: number;
+  low_count?: number;
+};
+
 export type Scan = {
   id: string;
   url: string;
@@ -18,6 +37,7 @@ export type Scan = {
   fingerprint?: Record<string, unknown>;
   findings?: Finding[];
   risk_path?: string | null;
+  summary?: ScanSummary | null;
   error?: string | null;
 };
 
