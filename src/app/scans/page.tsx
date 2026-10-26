@@ -6,6 +6,52 @@ import { PageShell } from "@/components/PageShell";
 import { useAuth } from "@/components/AuthProvider";
 import { listMyScans, readGuestScans, type ScanListItem } from "@/lib/api";
 
+function hostOf(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function formatWhen(iso: string) {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+function verdictMeta(raw: string | undefined, status: string) {
+  const key = (raw || status || "").toLowerCase();
+  if (status === "running" || status === "queued") {
+    return { label: status === "queued" ? "Queued" : "Running", tone: "text-[var(--accent)] bg-[var(--brand-soft)]" };
+  }
+  if (status === "failed") {
+    return { label: "Failed", tone: "text-[var(--danger)] bg-red-50" };
+  }
+  switch (key) {
+    case "looks_solid":
+      return { label: "Looks solid", tone: "text-[var(--brand-deep)] bg-[var(--brand-soft)]" };
+    case "minor_notes":
+      return { label: "Minor notes", tone: "text-[var(--warn)] bg-amber-50" };
+    case "issues_found":
+      return { label: "Issues found", tone: "text-[var(--danger)] bg-red-50" };
+    case "done":
+      return { label: "Complete", tone: "text-[var(--muted)] bg-white" };
+    default:
+      return {
+        label: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Scan",
+        tone: "text-[var(--muted)] bg-white",
+      };
+  }
+}
+
 export default function MyScansPage() {
   const { user, loading, login } = useAuth();
   const [scans, setScans] = useState<ScanListItem[]>([]);
@@ -38,9 +84,12 @@ export default function MyScansPage() {
     };
   }, [user]);
 
+  const usagePct = limit > 0 ? Math.min(100, Math.round((scans.length / limit) * 100)) : 0;
+  const nearLimit = plan === "free" && scans.length >= Math.max(1, limit - 2);
+
   return (
     <PageShell>
-      <div className="animate-rise flex flex-wrap items-end justify-between gap-4 pt-4">
+      <div className="animate-rise flex flex-wrap items-end justify-between gap-5 pt-4">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[var(--ink)]">
             My scans
@@ -48,17 +97,38 @@ export default function MyScansPage() {
           <p className="mt-2 text-[var(--muted)]">Saved briefs for your Google account.</p>
         </div>
         {user && (
-          <p className="text-sm text-[var(--muted)]">
-            {plan} · {scans.length}/{limit}
-            {plan === "free" && scans.length >= limit && (
-              <>
-                {" · "}
-                <Link href="/pricing" className="text-[var(--brand-deep)] underline-offset-2 hover:underline">
-                  Upgrade
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="min-w-[9.5rem]">
+              <div className="flex items-center justify-between gap-3 text-xs text-[var(--muted)]">
+                <span className="capitalize">{plan} plan</span>
+                <span>
+                  {scans.length}/{limit}
+                </span>
+              </div>
+              <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[var(--brand-soft)]">
+                <div
+                  className={`h-full rounded-full transition-[width] duration-500 ${
+                    nearLimit ? "bg-[var(--warn)]" : "bg-[var(--brand)]"
+                  }`}
+                  style={{ width: `${usagePct}%` }}
+                />
+              </div>
+              {nearLimit && (
+                <Link
+                  href="/pricing"
+                  className="mt-1.5 inline-block text-xs font-medium text-[var(--brand-deep)] hover:underline"
+                >
+                  Upgrade for more
                 </Link>
-              </>
-            )}
-          </p>
+              )}
+            </div>
+            <Link
+              href="/#scan"
+              className="rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
+            >
+              New scan
+            </Link>
+          </div>
         )}
       </div>
 
@@ -93,28 +163,38 @@ export default function MyScansPage() {
           <GuestRecent guest={guest} />
         </div>
       ) : (
-        <ul className="animate-rise-delay mt-10 divide-y divide-[var(--line)]/80">
+        <ul className="animate-rise-delay mt-10">
           {scans.map((s) => {
-            const verdict = s.summary?.verdict || s.status;
+            const v = verdictMeta(s.summary?.verdict, s.status);
+            const host = hostOf(s.url);
             return (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-                <div className="min-w-0">
-                  <Link
-                    href={`/scan/${s.id}`}
-                    className="block truncate font-medium text-[var(--ink)] hover:text-[var(--brand-deep)]"
-                  >
-                    {s.url}
-                  </Link>
-                  <p className="mt-1 font-mono text-xs text-[var(--muted)]">
-                    {new Date(s.created_at).toLocaleString()} · {verdict}
-                    {s.parent_scan_id ? " · rescan" : ""}
-                  </p>
-                </div>
+              <li key={s.id}>
                 <Link
                   href={`/scan/${s.id}`}
-                  className="text-sm font-medium text-[var(--brand-deep)] hover:underline"
+                  className="group flex items-start gap-4 border-t border-[var(--line)]/70 py-4 transition first:border-t-0 hover:bg-white/40 sm:items-center"
                 >
-                  Open
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <span className="truncate text-[15px] font-semibold text-[var(--ink)] group-hover:text-[var(--brand-deep)]">
+                        {host}
+                      </span>
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-[11px] font-semibold tracking-wide ${v.tone}`}
+                      >
+                        {v.label}
+                      </span>
+                      {s.parent_scan_id && (
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted)]">
+                          Rescan
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 truncate text-sm text-[var(--muted)]">{s.url}</p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">{formatWhen(s.created_at)}</p>
+                  </div>
+                  <span className="shrink-0 pt-1 text-sm font-medium text-[var(--brand-deep)] opacity-70 transition group-hover:opacity-100 sm:pt-0">
+                    View →
+                  </span>
                 </Link>
               </li>
             );
@@ -134,7 +214,7 @@ function GuestRecent({ guest }: { guest: { id: string; url: string; at: string }
         {guest.map((g) => (
           <li key={g.id}>
             <Link href={`/scan/${g.id}`} className="text-[var(--brand-deep)] hover:underline">
-              {g.url}
+              {hostOf(g.url)}
             </Link>
           </li>
         ))}
