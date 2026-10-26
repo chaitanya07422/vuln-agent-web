@@ -22,9 +22,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScanLead — Authorized website security scans",
+  title: "ScanLead — Authorized detect-only website scans",
   description:
-    "Paste a URL you own. Parallel specialist agents check for common exposures and return a company-ready brief. Sign in with Google to save history, share, and export.",
+    "Authorized detect-only scans. Specialist agents return a company brief—not a letter grade. Paste a URL you own; sign in to save, share, and export.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -1,14 +1,22 @@
+import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ScanForm } from "@/components/ScanForm";
+import { HomeSpecialistMock } from "@/components/HomeSpecialistMock";
 
 const CHECKS = [
   { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
   { title: "Leaks & secrets", body: ".env, git, backups, plus secret patterns in public JavaScript." },
   { title: "Auth & session", body: "Login surfaces, cookie flags, OAuth/JWKS misconfig hints." },
-  { title: "Input hygiene", body: "Benign empty/oversize/type probes and client-only validation hints — no exploit payloads." },
-  { title: "Access & CSRF", body: "Unauth API/ID hints, CSRF token gaps, safe XSS reflection, SSRF URL-param signals." },
-  { title: "Auth & TLS", body: "Login/reset enumeration cues, MFA hints, certificate expiry and obsolete TLS." },
-  { title: "Cloud, stack & DNS", body: "Buckets, admin paths, version/CVE signals, SPF/DMARC and DNS hygiene." },
+  { title: "Input hygiene", body: "Benign empty/oversize/type probes — no exploit payloads." },
+  { title: "Access & CSRF", body: "Unauth API/ID hints, CSRF gaps, safe XSS reflection, SSRF param signals." },
+  { title: "Auth & TLS", body: "Login/reset enumeration cues, MFA hints, cert expiry and obsolete TLS." },
+  { title: "Cloud, stack & DNS", body: "Buckets, admin paths, version signals, SPF/DMARC and DNS hygiene." },
+];
+
+const NEVER = [
+  { t: "No unauthorized targets", b: "Every run needs an ownership attestation before probes start." },
+  { t: "No password sprays", b: "We never brute-force logins or credential-stuff accounts." },
+  { t: "No exploit payloads", b: "Detect-only HTTP, DNS, and port checks — evidence, not exploitation." },
 ];
 
 export default function Home() {
@@ -39,6 +47,7 @@ export default function Home() {
       <SiteHeader />
 
       <main>
+        {/* Hero — brand + one line + ScanForm */}
         <section className="mx-auto flex min-h-[calc(100vh-5.5rem)] w-full max-w-6xl flex-col justify-center px-5 pb-16 pt-4 sm:px-8">
           <p className="animate-rise font-mono text-xs font-medium uppercase tracking-[0.18em] text-[var(--brand)]">
             Authorized external checks
@@ -47,8 +56,7 @@ export default function Home() {
             ScanLead
           </h1>
           <p className="animate-rise-delay mt-5 max-w-xl text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
-            Paste a URL you own. Specialist agents return a company-ready brief you can save and
-            share.
+            Authorized detect-only scans. A company brief—not a letter grade.
           </p>
 
           <div id="scan" className="mt-10 max-w-3xl scroll-mt-24">
@@ -56,7 +64,152 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="checks" className="border-t border-[var(--line)] bg-white/60 py-20">
+        {/* What we never do */}
+        <section className="border-t border-[var(--line)] bg-[var(--ink)] text-[#e8f0eb]">
+          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3 sm:gap-10 sm:px-8 sm:py-14">
+            {NEVER.map((item) => (
+              <div key={item.t}>
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
+                  Never
+                </p>
+                <h2 className="mt-2 font-[family-name:var(--font-display)] text-xl tracking-tight">
+                  {item.t}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-[#b7c9bf]">{item.b}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Why ScanLead */}
+        <section id="why" className="scroll-mt-24 border-t border-[var(--line)] bg-white/70 py-20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
+              Why ScanLead
+            </p>
+            <h2 className="mt-3 max-w-2xl font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+              Built for the gap between a free grade and an enterprise platform.
+            </h2>
+            <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-16">
+              <div>
+                <h3 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
+                  Not another letter grade
+                </h3>
+                <p className="mt-3 leading-relaxed text-[var(--muted)]">
+                  Header and TLS checkers stop at A–F. ScanLead runs specialist agents across
+                  secrets, auth surfaces, DNS/email, stack signals, and more—then writes one
+                  narrative brief your team can act on.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
+                  Not an enterprise scanner
+                </h3>
+                <p className="mt-3 leading-relaxed text-[var(--muted)]">
+                  No sales cycle, no asset sprawl, no continuous platform to babysit. Paste a URL
+                  you own, watch specialists engage, leave with a shareable company brief.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Specialists live */}
+        <section className="border-t border-[var(--line)] py-20">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
+                Specialists, live
+              </p>
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+                One agent at a time—not a silent spinner.
+              </h2>
+              <p className="mt-4 max-w-md leading-relaxed text-[var(--muted)]">
+                See what’s probing now, what cleared, and what’s next. The scan feels like a real
+                engagement, because it is: parallel specialists reporting in as they finish.
+              </p>
+              <Link
+                href="/#scan"
+                className="mt-8 inline-flex text-sm font-semibold text-[var(--brand-deep)] hover:underline"
+              >
+                Run a scan →
+              </Link>
+            </div>
+            <HomeSpecialistMock />
+          </div>
+        </section>
+
+        {/* Company-ready brief */}
+        <section className="border-t border-[var(--line)] bg-white/60 py-20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
+              Deliverable
+            </p>
+            <h2 className="mt-3 max-w-2xl font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+              A company-ready brief you can share.
+            </h2>
+            <p className="mt-4 max-w-2xl text-[var(--muted)]">
+              Severity, evidence, fixes, and a short abuse-path story—written for engineering and
+              leadership, not a raw scanner dump.
+            </p>
+
+            <div className="mt-10 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bg-elevated)]">
+              <div className="border-b border-[var(--line)]/80 px-5 py-4 sm:px-6">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--brand)]">
+                  Security brief
+                </p>
+                <p className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
+                  example.com — detect-only pass
+                </p>
+              </div>
+              <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="space-y-5 border-b border-[var(--line)]/70 px-5 py-6 sm:px-6 lg:border-b-0 lg:border-r">
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--warn)]">
+                      Medium
+                    </p>
+                    <p className="mt-1 font-semibold text-[var(--ink)]">Missing Strict-Transport-Security</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      Evidence on the apex response. Fix: set HSTS on HTTPS with a long max-age.
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+                      Low
+                    </p>
+                    <p className="mt-1 font-semibold text-[var(--ink)]">No DMARC record</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      Publish _dmarc with p=none and rua, then tighten after reports.
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brand)]">
+                      Clear
+                    </p>
+                    <p className="mt-1 font-semibold text-[var(--ink)]">Secrets in public JS</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">No high-confidence secret patterns flagged.</p>
+                  </div>
+                </div>
+                <div className="bg-[var(--brand-soft)]/40 px-5 py-6 sm:px-6">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--brand)]">
+                    How this could be abused
+                  </p>
+                  <ol className="mt-3 list-decimal space-y-2 pl-4 text-sm leading-relaxed text-[var(--ink)]/85">
+                    <li>Traffic without enforced HTTPS can be downgraded on first visit.</li>
+                    <li>Missing email auth makes spoofed mail harder to reject.</li>
+                    <li>Priority fix: ship HSTS, then DMARC monitoring.</li>
+                  </ol>
+                  <p className="mt-6 font-mono text-xs text-[var(--muted)]">
+                    Share link · Markdown · HTML / PDF
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* What we check */}
+        <section id="checks" className="scroll-mt-24 border-t border-[var(--line)] py-20">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
               What we check
@@ -75,7 +228,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="method" className="border-t border-[var(--line)] py-20">
+        {/* Built for trust */}
+        <section id="method" className="border-t border-[var(--line)] bg-white/60 py-20">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
               Built for trust
@@ -107,6 +261,24 @@ export default function Home() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Footer CTA */}
+        <section className="border-t border-[var(--line)] py-16">
+          <div className="mx-auto max-w-6xl px-5 text-center sm:px-8">
+            <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)]">
+              Paste a URL you own.
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-[var(--muted)]">
+              Start a detect-only pass and get a brief your company can use.
+            </p>
+            <Link
+              href="/#scan"
+              className="mt-8 inline-flex min-h-12 items-center rounded-xl bg-[var(--brand)] px-7 text-base font-semibold text-white hover:bg-[var(--brand-deep)]"
+            >
+              Start scan
+            </Link>
           </div>
         </section>
       </main>

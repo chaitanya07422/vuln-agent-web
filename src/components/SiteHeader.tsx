@@ -25,7 +25,10 @@ export function SiteHeader() {
         ScanLead
       </Link>
       <nav className="flex items-center gap-3 text-sm sm:gap-6">
-        <Link href="/#checks" className="hidden text-[var(--muted)] transition hover:text-[var(--ink)] sm:inline">
+        <Link href="/#why" className="hidden text-[var(--muted)] transition hover:text-[var(--ink)] sm:inline">
+          Why ScanLead
+        </Link>
+        <Link href="/#checks" className="hidden text-[var(--muted)] transition hover:text-[var(--ink)] md:inline">
           What we check
         </Link>
         <Link href="/pricing" className={`hidden sm:inline ${linkClass("/pricing")}`}>

@@ -101,7 +101,7 @@ function PricingBody() {
       <p className="mt-3 max-w-xl text-[var(--muted)]">
         {isPro
           ? "You’re on Pro — branded briefs, higher limits, and rescan diffs are unlocked."
-          : "Sign in for history and share. Pro unlocks branded briefs and higher saved-scan limits."}
+          : "Free hygiene briefs for owned URLs. Pro adds branded PDF and history. ₹60 unlocks a one-shot deep brief—no enterprise platform required."}
       </p>
 
       {confirming && (

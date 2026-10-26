@@ -232,7 +232,8 @@ button:active:not(:disabled) {
   .scan-pulse,
   .scan-beam,
   .scan-log-row,
-  .scan-caret {
+  .scan-caret,
+  .animate-ping {
     animation: none !important;
   }
   button:active:not(:disabled) {
