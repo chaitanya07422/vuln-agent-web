@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
+import { PlanBadge } from "@/components/PlanBadge";
 import { useAuth } from "@/components/AuthProvider";
 import { createCheckout, getPlans, syncBilling } from "@/lib/api";
 
@@ -26,6 +27,9 @@ function PricingBody() {
   const [plans, setPlans] = useState<PlansPayload | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [confirming, setConfirming] = useState(false);
+
+  const isPro = user?.plan === "pro";
 
   useEffect(() => {
     void getPlans()
@@ -37,15 +41,20 @@ function PricingBody() {
     if (params.get("paid") !== "1" || !user) return;
     let cancelled = false;
     (async () => {
-      setMsg("Confirming payment…");
+      setConfirming(true);
+      setMsg("");
       try {
         await syncBilling();
         await refresh();
         if (!cancelled) {
-          setMsg("Payment confirmed — Pro should be active. Refresh if needed.");
+          setConfirming(false);
+          window.history.replaceState(null, "", "/pricing");
         }
       } catch (err) {
-        if (!cancelled) setMsg(err instanceof Error ? err.message : String(err));
+        if (!cancelled) {
+          setConfirming(false);
+          setMsg(err instanceof Error ? err.message : String(err));
+        }
       }
     })();
     return () => {
@@ -81,15 +90,24 @@ function PricingBody() {
 
   return (
     <>
-      <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[var(--ink)]">
-        Pricing
-      </h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[var(--ink)]">
+          Pricing
+        </h1>
+        {user && <PlanBadge plan={user.plan} />}
+      </div>
       <p className="mt-3 max-w-xl text-[var(--muted)]">
-        Sign in for history and share. Pro unlocks branded briefs and higher saved-scan limits.
+        {isPro
+          ? "You’re on Pro — branded briefs, higher limits, and rescan diffs are unlocked."
+          : "Sign in for history and share. Pro unlocks branded briefs and higher saved-scan limits."}
       </p>
 
+      {confirming && (
+        <p className="mt-6 font-mono text-sm text-[var(--muted)]">Confirming payment…</p>
+      )}
+
       <div className="mt-12 grid gap-10 md:grid-cols-2">
-        <div>
+        <div className={isPro ? "opacity-60" : undefined}>
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">Free</h2>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink)]">₹0</p>
           <ul className="mt-6 space-y-2.5 text-sm text-[var(--muted)]">
@@ -101,7 +119,10 @@ function PricingBody() {
         </div>
 
         <div>
-          <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">Pro</h2>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">Pro</h2>
+            {isPro && <PlanBadge plan="pro" size="sm" />}
+          </div>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink)]">
             ₹{monthly?.price ?? 999}
             <span className="text-base font-normal text-[var(--muted)]">/mo</span>
@@ -113,25 +134,43 @@ function PricingBody() {
             <li>Rescan + finding diff</li>
             <li>Higher rate limits</li>
           </ul>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled={busy || !ready}
-              onClick={() => void upgrade("month")}
-              className="rounded-xl bg-[var(--brand)] px-5 py-3 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
-            >
-              {user ? "Upgrade monthly" : "Sign in to upgrade"}
-            </button>
-            <button
-              type="button"
-              disabled={busy || !ready}
-              onClick={() => void upgrade("year")}
-              className="rounded-xl border border-[var(--line)] bg-white/70 px-5 py-3 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] disabled:opacity-50"
-            >
-              Yearly
-            </button>
-          </div>
-          {plans && !ready && (
+
+          {isPro ? (
+            <div className="mt-8 flex items-center gap-3 rounded-2xl border border-[var(--brand)]/25 bg-[var(--brand-soft)] px-4 py-3">
+              <svg className="h-5 w-5 shrink-0 text-[var(--brand)]" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+                <path d="M8 1.5 9.9 5.4l4.3.4-3.3 2.9.9 4.2L8 11.1l-3.8 1.8.9-4.2L1.8 5.8l4.3-.4L8 1.5Z" />
+              </svg>
+              <div>
+                <p className="text-sm font-semibold text-[var(--brand-deep)]">Your current plan</p>
+                <p className="text-xs text-[var(--muted)]">
+                  Payment confirmed
+                  {user?.plan_expires_at
+                    ? ` · renews ${new Date(user.plan_expires_at).toLocaleDateString()}`
+                    : ""}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={busy || !ready || confirming}
+                onClick={() => void upgrade("month")}
+                className="rounded-xl bg-[var(--brand)] px-5 py-3 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+              >
+                {user ? "Upgrade monthly" : "Sign in to upgrade"}
+              </button>
+              <button
+                type="button"
+                disabled={busy || !ready || confirming}
+                onClick={() => void upgrade("year")}
+                className="rounded-xl border border-[var(--line)] bg-white/70 px-5 py-3 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] disabled:opacity-50"
+              >
+                Yearly
+              </button>
+            </div>
+          )}
+          {plans && !ready && !isPro && (
             <p className="mt-4 text-sm text-[var(--warn)]">
               Checkout is not configured on this environment yet.
             </p>
@@ -140,9 +179,6 @@ function PricingBody() {
       </div>
 
       {msg && <p className="mt-8 text-sm text-[var(--muted)]">{msg}</p>}
-      {user?.plan === "pro" && (
-        <p className="mt-4 text-sm text-[var(--brand-deep)]">You are on Pro.</p>
-      )}
     </>
   );
 }

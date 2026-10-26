@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { PlanBadge } from "@/components/PlanBadge";
 
 export function SiteHeader() {
   const { user, loading, login, logout } = useAuth();
@@ -36,6 +37,7 @@ export function SiteHeader() {
               My scans
             </Link>
             <div className="flex items-center gap-2.5 pl-1">
+              {user.plan === "pro" && <PlanBadge plan="pro" size="sm" />}
               {user.picture ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

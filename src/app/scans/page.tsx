@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { useAuth } from "@/components/AuthProvider";
+import { PlanBadge } from "@/components/PlanBadge";
 import { listMyScans, readGuestScans, type ScanListItem } from "@/lib/api";
 
 function hostOf(url: string) {
@@ -100,7 +101,7 @@ export default function MyScansPage() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-[9.5rem]">
               <div className="flex items-center justify-between gap-3 text-xs text-[var(--muted)]">
-                <span className="capitalize">{plan} plan</span>
+                <PlanBadge plan={plan} size="sm" />
                 <span>
                   {scans.length}/{limit}
                 </span>
