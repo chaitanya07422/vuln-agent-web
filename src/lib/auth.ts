@@ -9,6 +9,7 @@ export type User = {
   picture?: string | null;
   plan?: string;
   plan_expires_at?: string | null;
+  deep_credits?: number;
 };
 
 async function parseError(res: Response): Promise<string> {

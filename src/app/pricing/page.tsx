@@ -62,7 +62,7 @@ function PricingBody() {
     };
   }, [params, user, refresh]);
 
-  async function upgrade(interval: "month" | "year") {
+  async function upgrade(interval: "month" | "year" | "once", planId?: string) {
     if (!user) {
       login();
       return;
@@ -70,7 +70,7 @@ function PricingBody() {
     setBusy(true);
     setMsg("");
     try {
-      const order = await createCheckout(interval);
+      const order = await createCheckout(interval, planId);
       if (!order.checkout_url) {
         setMsg("No checkout URL returned.");
         setBusy(false);
@@ -86,7 +86,9 @@ function PricingBody() {
   const free = plans?.plans.find((p) => p.id === "free");
   const monthly = plans?.plans.find((p) => p.id === "pro_monthly");
   const yearly = plans?.plans.find((p) => p.id === "pro_yearly");
+  const deep = plans?.plans.find((p) => p.id === "deep_scan_once");
   const ready = Boolean(plans?.payments_ready ?? plans?.razorpay_ready);
+  const deepCredits = user?.deep_credits ?? 0;
 
   return (
     <>
@@ -106,16 +108,41 @@ function PricingBody() {
         <p className="mt-6 font-mono text-sm text-[var(--muted)]">Confirming payment…</p>
       )}
 
-      <div className="mt-12 grid gap-10 md:grid-cols-2">
+      <div className="mt-12 grid gap-10 md:grid-cols-3">
         <div className={isPro ? "opacity-60" : undefined}>
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">Free</h2>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink)]">₹0</p>
           <ul className="mt-6 space-y-2.5 text-sm text-[var(--muted)]">
-            <li>Authorized one-shot scans</li>
+            <li>Full detect-only agent pack</li>
             <li>Last {free?.history ?? 10} saved scans</li>
             <li>Share links</li>
             <li>Watermarked HTML / PDF</li>
           </ul>
+        </div>
+
+        <div>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
+            Deep brief
+          </h2>
+          <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink)]">
+            ₹{deep?.price ?? 60}
+            <span className="text-base font-normal text-[var(--muted)]"> once</span>
+          </p>
+          <ul className="mt-6 space-y-2.5 text-sm text-[var(--muted)]">
+            <li>Same agents as Free / Pro</li>
+            <li>One Pro-style branded HTML brief</li>
+            <li>Credits: {deepCredits}</li>
+          </ul>
+          <div className="mt-8">
+            <button
+              type="button"
+              disabled={busy || !ready || confirming || isPro}
+              onClick={() => void upgrade("once", "deep_scan_once")}
+              className="rounded-xl border border-[var(--line)] bg-white/70 px-5 py-3 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] disabled:opacity-50"
+            >
+              {isPro ? "Included in Pro" : user ? "Buy ₹60 credit" : "Sign in to buy"}
+            </button>
+          </div>
         </div>
 
         <div>

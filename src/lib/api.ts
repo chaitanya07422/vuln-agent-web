@@ -149,7 +149,10 @@ export async function getDiff(previousId: string, currentId: string) {
   return res.json();
 }
 
-export async function createCheckout(interval: "month" | "year" = "month"): Promise<{
+export async function createCheckout(
+  interval: "month" | "year" | "once" = "month",
+  planId?: string,
+): Promise<{
   checkout_url: string;
   provider?: string;
   mock?: boolean;
@@ -159,7 +162,7 @@ export async function createCheckout(interval: "month" | "year" = "month"): Prom
     method: "POST",
     headers: authHeaders({ "content-type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ interval }),
+    body: JSON.stringify({ interval, plan_id: planId }),
   });
   if (!res.ok) throw new Error(await parseError(res));
   return res.json();

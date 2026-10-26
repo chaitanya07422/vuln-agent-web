@@ -2,12 +2,12 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { ScanForm } from "@/components/ScanForm";
 
 const CHECKS = [
-  { title: "Recon & fingerprint", body: "Headers, tech tags, and surface map before deeper probes." },
-  { title: "Leaks & config", body: ".env, git metadata, backups, docs, and tech-specific paths." },
-  { title: "Auth surfaces", body: "Public user enum and XML-RPC-style endpoints when the stack matches." },
-  { title: "CORS & APIs", body: "Origin reflection and publicly reachable API documentation." },
-  { title: "Upload & staging", body: "Unauth upload gates and staging hosts linked from production." },
-  { title: "Ports & mail", body: "One-shot port presence and mail-related host resolution." },
+  { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
+  { title: "Leaks & secrets", body: ".env, git, backups, plus secret patterns in public JavaScript." },
+  { title: "Auth & session", body: "Login surfaces, cookie flags, OAuth/JWKS misconfig hints." },
+  { title: "APIs & GraphQL", body: "CORS with credentials, GraphQL introspection, HTTP method hygiene." },
+  { title: "Cloud & admin", body: "Public storage listing, admin paths, Firebase/Spring when matched." },
+  { title: "DNS & email", body: "SPF/DMARC, CAA/DNSSEC, dangling CNAME and subdomain hints." },
 ];
 
 export default function Home() {
