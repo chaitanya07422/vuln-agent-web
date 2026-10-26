@@ -5,6 +5,7 @@ const CHECKS = [
   { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
   { title: "Leaks & secrets", body: ".env, git, backups, plus secret patterns in public JavaScript." },
   { title: "Auth & session", body: "Login surfaces, cookie flags, OAuth/JWKS misconfig hints." },
+  { title: "Input hygiene", body: "Benign empty/oversize/type probes and client-only validation hints — no exploit payloads." },
   { title: "APIs & GraphQL", body: "CORS with credentials, GraphQL introspection, HTTP method hygiene." },
   { title: "Cloud & admin", body: "Public storage listing, admin paths, Firebase/Spring when matched." },
   { title: "DNS & email", body: "SPF/DMARC, CAA/DNSSEC, dangling CNAME and subdomain hints." },

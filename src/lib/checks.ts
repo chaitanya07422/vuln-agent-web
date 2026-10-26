@@ -36,6 +36,11 @@ export const CHECK_CATALOG: { agent: string; label: string; does: string }[] = [
   { agent: "cache_poison_hint", label: "Cache poison hints", does: "Unkeyed forwarded-header reflection" },
   { agent: "rate_limit_probe", label: "Rate-limit probe", does: "Soft 5-request burst on auth-like paths" },
   { agent: "dependency_meta", label: "Manifests & generator", does: "package.json, generator meta, lockfiles" },
+  {
+    agent: "input_hygiene",
+    label: "Input hygiene",
+    does: "Benign empty/oversize/type probes; client-only validation hints",
+  },
   { agent: "adapt", label: "Extra path probes", does: "One-shot paths from stack + JS hints" },
   { agent: "compliance_map", label: "OWASP theme map", does: "Findings mapped to OWASP-style themes" },
   { agent: "executive_brief", label: "Executive brief", does: "Short C-level summary of the pass" },
