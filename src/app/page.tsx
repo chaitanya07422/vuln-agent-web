@@ -6,9 +6,9 @@ const CHECKS = [
   { title: "Leaks & secrets", body: ".env, git, backups, plus secret patterns in public JavaScript." },
   { title: "Auth & session", body: "Login surfaces, cookie flags, OAuth/JWKS misconfig hints." },
   { title: "Input hygiene", body: "Benign empty/oversize/type probes and client-only validation hints — no exploit payloads." },
-  { title: "APIs & GraphQL", body: "CORS with credentials, GraphQL introspection, HTTP method hygiene." },
-  { title: "Cloud & admin", body: "Public storage listing, admin paths, Firebase/Spring when matched." },
-  { title: "DNS & email", body: "SPF/DMARC, CAA/DNSSEC, dangling CNAME and subdomain hints." },
+  { title: "Access & CSRF", body: "Unauth API/ID hints, CSRF token gaps, safe XSS reflection, SSRF URL-param signals." },
+  { title: "Auth & TLS", body: "Login/reset enumeration cues, MFA hints, certificate expiry and obsolete TLS." },
+  { title: "Cloud, stack & DNS", body: "Buckets, admin paths, version/CVE signals, SPF/DMARC and DNS hygiene." },
 ];
 
 export default function Home() {
