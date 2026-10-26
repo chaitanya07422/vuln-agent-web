@@ -1,25 +1,46 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { createScan, getReport, getScan, type Finding, type Scan } from "@/lib/api";
+import {
+  claimScan,
+  createScan,
+  getReport,
+  getScan,
+  readClaimToken,
+  rememberClaimToken,
+  rememberGuestScan,
+  type Finding,
+  type Scan,
+} from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import { AuthModal } from "@/components/AuthModal";
 import { ScanProgress } from "@/components/ScanProgress";
 import { ScanResults } from "@/components/ScanResults";
 
 type Phase = "idle" | "running" | "done" | "error";
 
-export function ScanForm() {
-  const [url, setUrl] = useState("");
+export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
+  const { user, login } = useAuth();
+  const [url, setUrl] = useState(initialUrl);
   const [attested, setAttested] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [status, setStatus] = useState("Ready when you are.");
   const [scan, setScan] = useState<Scan | null>(null);
   const [report, setReport] = useState("");
   const [error, setError] = useState("");
+  const [claimMsg, setClaimMsg] = useState("");
+  const [claimBusy, setClaimBusy] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!user) {
+      setAuthOpen(true);
+      return;
+    }
     setError("");
     setReport("");
+    setClaimMsg("");
     setScan(null);
     setPhase("running");
     setStatus("Starting authorized scan…");
@@ -27,6 +48,8 @@ export function ScanForm() {
     try {
       const created = await createScan(url.trim(), attested);
       setScan(created);
+      if (created.claim_token) rememberClaimToken(created.id, created.claim_token);
+      rememberGuestScan({ id: created.id, url: created.url });
       setStatus(`Scan ${created.id.slice(0, 8)}… running specialist agents`);
 
       let final: Scan | null = null;
@@ -56,10 +79,36 @@ export function ScanForm() {
     }
   }
 
+  async function onSave() {
+    if (!scan) return;
+    if (!user) {
+      login();
+      return;
+    }
+    const token = scan.claim_token || readClaimToken(scan.id);
+    if (!token) {
+      setClaimMsg("This scan is already saved or the claim token expired.");
+      return;
+    }
+    setClaimBusy(true);
+    setClaimMsg("");
+    try {
+      const updated = await claimScan(scan.id, token);
+      setScan(updated);
+      setClaimMsg("Saved to My scans.");
+    } catch (err) {
+      setClaimMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setClaimBusy(false);
+    }
+  }
+
   const findings: Finding[] = scan?.findings ?? [];
+  const canClaim = phase === "done" && scan && !scan.owner_id;
 
   return (
     <div className="w-full">
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <form onSubmit={onSubmit} className="animate-rise-delay-2 flex w-full flex-col gap-4">
         <label className="text-sm font-medium text-[var(--muted)]" htmlFor="target-url">
           Website URL
@@ -72,12 +121,12 @@ export function ScanForm() {
             placeholder="https://your-company.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="min-h-14 flex-1 rounded-xl border border-[var(--line)] bg-white px-4 text-base text-[var(--ink)] outline-none ring-[var(--brand)] placeholder:text-[#9aaca3] focus:ring-2"
+            className="min-h-14 flex-1 rounded-xl border border-[var(--line)] bg-white px-4 text-base text-[var(--ink)] outline-none ring-[var(--brand)] placeholder:text-[#9aaca3] focus:border-[var(--brand)] focus:ring-2"
           />
           <button
             type="submit"
             disabled={phase === "running" || !attested}
-            className="min-h-14 rounded-xl bg-[var(--brand)] px-7 text-base font-semibold text-white transition hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-45"
+            className="min-h-14 rounded-xl bg-[var(--brand)] px-7 text-base font-semibold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-45"
           >
             {phase === "running" ? "Scanning…" : "Start scan"}
           </button>
@@ -98,9 +147,9 @@ export function ScanForm() {
         </label>
       </form>
 
-      <div className="mt-6 flex items-center gap-3 rounded-xl border border-[var(--line)] bg-white/80 px-4 py-3 font-mono text-sm text-[var(--muted)]">
+      <div className="mt-5 flex items-center gap-3 px-1 font-mono text-sm text-[var(--muted)]">
         {phase === "running" && (
-          <span className="scan-pulse inline-block h-2.5 w-2.5 rounded-full bg-[var(--accent)]" />
+          <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
         )}
         <span>{status}</span>
       </div>
@@ -110,9 +159,24 @@ export function ScanForm() {
       )}
 
       {error && (
-        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-[var(--danger)]">
+        <p className="mt-4 animate-rise rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-[var(--danger)]">
           {error}
         </p>
+      )}
+
+      {canClaim && (
+        <div className="mt-5 flex flex-wrap items-center gap-3 animate-rise text-sm text-[var(--ink)]">
+          <span className="text-[var(--muted)]">Keep this brief in your account.</span>
+          <button
+            type="button"
+            disabled={claimBusy}
+            onClick={() => void onSave()}
+            className="rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+          >
+            {user ? (claimBusy ? "Saving…" : "Save to My scans") : "Sign in to save"}
+          </button>
+          {claimMsg && <span className="text-[var(--muted)]">{claimMsg}</span>}
+        </div>
       )}
 
       {(phase === "done" || (phase === "running" && findings.length > 0)) && scan && (

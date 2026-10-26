@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope, IBM_Plex_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
 
 const display = Fraunces({
@@ -23,14 +24,14 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "ScanLead — Authorized website security scans",
   description:
-    "Paste a URL you own. Parallel specialist agents check for common exposures and return a company-ready brief. No signup.",
+    "Paste a URL you own. Parallel specialist agents check for common exposures and return a company-ready brief. Sign in with Google to save history, share, and export.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className={`${display.variable} ${body.variable} ${mono.variable} antialiased`}>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

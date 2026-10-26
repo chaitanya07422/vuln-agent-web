@@ -52,7 +52,7 @@ export function ScanProgress({
   const pct = Math.round((done / total) * 100);
 
   return (
-    <div className="mt-6 animate-rise rounded-xl border border-[var(--line)] bg-white/90 px-5 py-5">
+    <div className="mt-8 animate-rise">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
@@ -67,18 +67,18 @@ export function ScanProgress({
         </span>
       </div>
 
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[var(--brand-soft)]">
+      <div className="mt-4 h-1 overflow-hidden rounded-full bg-[var(--brand-soft)]">
         <div
           className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-500 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>
 
-      <ul className="mt-4 space-y-0">
+      <ul className="mt-2">
         {visible.map((row) => (
           <li
             key={row.agent}
-            className="grid gap-1 border-t border-[var(--line)] py-2.5 text-sm sm:grid-cols-[6.5rem_1fr] sm:items-center sm:gap-3"
+            className="grid gap-1 border-t border-[var(--line)]/80 py-2.5 text-sm first:border-t-0 sm:grid-cols-[6.5rem_1fr] sm:items-center sm:gap-3"
           >
             <span
               className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wide ${statusClass(row.status)}`}
