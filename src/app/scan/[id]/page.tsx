@@ -92,7 +92,12 @@ export default function PublicScanPage() {
         )}
 
         {scan && (scan.status === "queued" || scan.status === "running") && (
-          <ScanProgress rows={scan.agents_progress} scanStatus={scan.status} />
+          <ScanProgress
+            rows={scan.agents_progress}
+            scanStatus={scan.status}
+            targetUrl={scan.url}
+            findingCount={scan.findings?.length ?? 0}
+          />
         )}
 
         {scan && (scan.status === "done" || (scan.findings && scan.findings.length > 0)) && (

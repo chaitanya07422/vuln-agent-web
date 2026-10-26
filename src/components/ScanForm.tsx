@@ -50,7 +50,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       setScan(created);
       if (created.claim_token) rememberClaimToken(created.id, created.claim_token);
       rememberGuestScan({ id: created.id, url: created.url });
-      setStatus(`Scan ${created.id.slice(0, 8)}… running specialist agents`);
+      setStatus(`Engaging ${created.url.replace(/^https?:\/\//, "")}…`);
 
       let final: Scan | null = null;
       for (let i = 0; i < 120; i++) {
@@ -58,7 +58,16 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
         const current = await getScan(created.id);
         setScan(current);
         const count = current.findings?.length ?? 0;
-        setStatus(`status: ${current.status} · findings: ${count}`);
+        const progress = current.agents_progress || [];
+        const active = progress.find((p) => p.status === "running");
+        const cleared = progress.filter((p) => p.status === "done" || p.status === "skipped").length;
+        if (current.status === "queued") {
+          setStatus("In queue — waiting for a worker…");
+        } else if (active) {
+          setStatus(`Probing · ${active.label}${count ? ` · ${count} signal${count === 1 ? "" : "s"}` : ""}`);
+        } else {
+          setStatus(`Scanning · ${cleared}/${progress.length || "…"} checks${count ? ` · ${count} signals` : ""}`);
+        }
         if (current.status === "done" || current.status === "failed") {
           final = current;
           break;
@@ -155,7 +164,12 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       </div>
 
       {phase === "running" && scan && (
-        <ScanProgress rows={scan.agents_progress} scanStatus={scan.status} />
+        <ScanProgress
+          rows={scan.agents_progress}
+          scanStatus={scan.status}
+          targetUrl={scan.url}
+          findingCount={scan.findings?.length ?? 0}
+        />
       )}
 
       {error && (
