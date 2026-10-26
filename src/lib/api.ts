@@ -149,12 +149,27 @@ export async function getDiff(previousId: string, currentId: string) {
   return res.json();
 }
 
-export async function createCheckout(interval: "month" | "year" = "month") {
+export async function createCheckout(interval: "month" | "year" = "month"): Promise<{
+  checkout_url: string;
+  provider?: string;
+  mock?: boolean;
+  plan_id?: string;
+}> {
   const res = await fetch("/v1/billing/checkout", {
     method: "POST",
     headers: authHeaders({ "content-type": "application/json" }),
     credentials: "include",
     body: JSON.stringify({ interval }),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json();
+}
+
+export async function syncBilling() {
+  const res = await fetch("/v1/billing/sync", {
+    method: "POST",
+    headers: authHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error(await parseError(res));
   return res.json();
