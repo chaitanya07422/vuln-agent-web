@@ -16,6 +16,14 @@ export type AgentSummaryRow = {
   note: string;
 };
 
+export type AgentProgress = {
+  agent: string;
+  label: string;
+  status: "pending" | "running" | "done" | "skipped" | "failed" | string;
+  started_at?: string | null;
+  finished_at?: string | null;
+};
+
 export type ScanSummary = {
   verdict?: "looks_solid" | "minor_notes" | "issues_found" | string;
   headline?: string;
@@ -38,6 +46,7 @@ export type Scan = {
   findings?: Finding[];
   risk_path?: string | null;
   summary?: ScanSummary | null;
+  agents_progress?: AgentProgress[] | null;
   error?: string | null;
 };
 

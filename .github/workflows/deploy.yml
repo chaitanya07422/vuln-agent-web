@@ -1,0 +1,102 @@
+name: Deploy web to Oracle
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-scanlead-web
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-fund --no-audit
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          API_URL: http://127.0.0.1:8000
+
+      - name: Pack standalone release
+        run: |
+          mkdir -p web-release
+          cp -a .next/standalone/. web-release/
+          mkdir -p web-release/.next
+          cp -a .next/static web-release/.next/static
+          if [ -d public ]; then cp -a public web-release/public; fi
+          cp ecosystem.config.cjs web-release/ecosystem.config.cjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-release
+          path: web-release
+          retention-days: 1
+          include-hidden-files: true
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download web release
+        uses: actions/download-artifact@v4
+        with:
+          name: web-release
+          path: web-release
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Ensure dirs
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            'mkdir -p /home/ubuntu/apps/scanlead/{web,logs}'
+
+      - name: Rsync web
+        run: |
+          rsync -az --delete \
+            -e 'ssh -i ~/.ssh/deploy_key' \
+            ./web-release/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/apps/scanlead/web/"
+
+      - name: Reload PM2
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" 'set -e
+            WEB=/home/ubuntu/apps/scanlead/web
+            export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:/usr/bin:$PATH"
+            command -v pm2 >/dev/null || { echo "pm2 not installed"; exit 1; }
+
+            cp "$WEB/ecosystem.config.cjs" /home/ubuntu/apps/scanlead/ecosystem.web.cjs
+            pm2 startOrReload /home/ubuntu/apps/scanlead/ecosystem.web.cjs --update-env
+            pm2 save
+
+            for i in $(seq 1 20); do
+              if curl -sf -o /dev/null http://127.0.0.1:3010/; then
+                echo "Web healthy"
+                exit 0
+              fi
+              sleep 2
+            done
+            echo "Health check failed"
+            pm2 logs scanlead-web --lines 40 --nostream || true
+            exit 1
+          '

@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { createScan, getReport, getScan, type Finding, type Scan } from "@/lib/api";
+import { ScanProgress } from "@/components/ScanProgress";
 import { ScanResults } from "@/components/ScanResults";
 
 type Phase = "idle" | "running" | "done" | "error";
@@ -103,6 +104,10 @@ export function ScanForm() {
         )}
         <span>{status}</span>
       </div>
+
+      {phase === "running" && scan && (
+        <ScanProgress rows={scan.agents_progress} scanStatus={scan.status} />
+      )}
 
       {error && (
         <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-[var(--danger)]">
