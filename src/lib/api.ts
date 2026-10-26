@@ -65,16 +65,57 @@ export type ScanListItem = {
   parent_scan_id?: string | null;
 };
 
-async function parseError(res: Response): Promise<string> {
+export type QuotaInfo = {
+  mode: "guest" | "free" | "pro" | string;
+  limit: number;
+  used: number;
+  remaining: number;
+  can_scan: boolean;
+  deep_credits?: number;
+  guest_lifetime?: number;
+  free_limit?: number;
+};
+
+export type QuotaErrorCode = "GUEST_QUOTA_EXCEEDED" | "FREE_QUOTA_EXCEEDED" | string;
+
+export class ApiError extends Error {
+  status: number;
+  code?: QuotaErrorCode;
+  upgrade?: { pro?: boolean; deep?: boolean; signin?: boolean };
+
+  constructor(
+    message: string,
+    opts: { status: number; code?: QuotaErrorCode; upgrade?: ApiError["upgrade"] },
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = opts.status;
+    this.code = opts.code;
+    this.upgrade = opts.upgrade;
+  }
+}
+
+async function parseError(res: Response): Promise<Error> {
   try {
     const data = await res.json();
-    if (typeof data?.detail === "string") return data.detail;
-    if (Array.isArray(data?.detail)) {
-      return data.detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join("; ");
+    const detail = data?.detail;
+    if (detail && typeof detail === "object" && !Array.isArray(detail)) {
+      return new ApiError(String(detail.message || detail.code || "Request failed"), {
+        status: res.status,
+        code: detail.code,
+        upgrade: detail.upgrade,
+      });
     }
-    return JSON.stringify(data);
+    if (typeof detail === "string") return new ApiError(detail, { status: res.status });
+    if (Array.isArray(detail)) {
+      return new ApiError(
+        detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join("; "),
+        { status: res.status },
+      );
+    }
+    return new ApiError(JSON.stringify(data), { status: res.status });
   } catch {
-    return res.statusText || "Request failed";
+    return new ApiError(res.statusText || "Request failed", { status: res.status });
   }
 }
 
@@ -85,7 +126,17 @@ export async function createScan(url: string, attested: boolean): Promise<Scan> 
     credentials: "include",
     body: JSON.stringify({ url, attested }),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function getQuota(): Promise<QuotaInfo> {
+  const res = await fetch("/v1/scans/quota", {
+    cache: "no-store",
+    headers: authHeaders(),
+    credentials: "include",
+  });
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -95,7 +146,7 @@ export async function getScan(id: string): Promise<Scan> {
     headers: authHeaders(),
     credentials: "include",
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -105,7 +156,7 @@ export async function getReport(id: string): Promise<string> {
     headers: authHeaders(),
     credentials: "include",
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.text();
 }
 
@@ -115,7 +166,7 @@ export async function listMyScans(): Promise<{ scans: ScanListItem[]; limit: num
     headers: authHeaders(),
     credentials: "include",
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -126,7 +177,7 @@ export async function claimScan(id: string, claimToken: string): Promise<Scan> {
     credentials: "include",
     body: JSON.stringify({ claim_token: claimToken }),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -136,7 +187,7 @@ export async function rescan(id: string): Promise<Scan> {
     headers: authHeaders(),
     credentials: "include",
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -145,7 +196,7 @@ export async function getDiff(previousId: string, currentId: string) {
     cache: "no-store",
     credentials: "include",
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -164,7 +215,7 @@ export async function createCheckout(
     credentials: "include",
     body: JSON.stringify({ interval, plan_id: planId }),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
@@ -174,13 +225,13 @@ export async function syncBilling() {
     headers: authHeaders(),
     credentials: "include",
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 
 export async function getPlans() {
   const res = await fetch("/v1/billing/plans", { cache: "no-store" });
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw await parseError(res);
   return res.json();
 }
 

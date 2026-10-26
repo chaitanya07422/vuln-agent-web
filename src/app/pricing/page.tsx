@@ -101,7 +101,7 @@ function PricingBody() {
       <p className="mt-3 max-w-xl text-[var(--muted)]">
         {isPro
           ? "You’re on Pro — branded briefs, higher limits, and rescan diffs are unlocked."
-          : "Free hygiene briefs for owned URLs. Pro adds branded PDF and history. ₹60 unlocks a one-shot deep brief—no enterprise platform required."}
+          : "2 guest scans with no account. Sign in for 5 Free scans. Then upgrade to Pro or buy a ₹60 deep brief."}
       </p>
 
       {confirming && (
@@ -113,10 +113,10 @@ function PricingBody() {
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">Free</h2>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink)]">₹0</p>
           <ul className="mt-6 space-y-2.5 text-sm text-[var(--muted)]">
+            <li>2 guest scans before signup</li>
+            <li>{free?.history ?? 5} Free scans after Google sign-in</li>
+            <li>Share links · watermarked PDF</li>
             <li>Full detect-only agent pack</li>
-            <li>Last {free?.history ?? 10} saved scans</li>
-            <li>Share links</li>
-            <li>Watermarked HTML / PDF</li>
           </ul>
         </div>
 

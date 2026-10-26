@@ -1,23 +1,29 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
+  ApiError,
   claimScan,
   createScan,
+  getQuota,
   getReport,
   getScan,
   readClaimToken,
   rememberClaimToken,
   rememberGuestScan,
   type Finding,
+  type QuotaInfo,
   type Scan,
 } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { AuthModal } from "@/components/AuthModal";
 import { ScanProgress } from "@/components/ScanProgress";
 import { ScanResults } from "@/components/ScanResults";
+import { UpsellPanel } from "@/components/UpsellPanel";
 
 type Phase = "idle" | "running" | "done" | "error";
+
+const TRUST = ["Detect-only", "No password sprays", "~2–3 min"];
 
 export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
   const { user, login } = useAuth();
@@ -31,16 +37,43 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
   const [claimMsg, setClaimMsg] = useState("");
   const [claimBusy, setClaimBusy] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [upsell, setUpsell] = useState<"guest" | "free" | null>(null);
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
+
+  const refreshQuota = useCallback(async () => {
+    try {
+      const q = await getQuota();
+      setQuota(q);
+      return q;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshQuota();
+  }, [refreshQuota, user?.id]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!user) {
-      setAuthOpen(true);
-      return;
-    }
     setError("");
     setReport("");
     setClaimMsg("");
+    setUpsell(null);
+
+    const q = await refreshQuota();
+    if (q && !q.can_scan && q.mode !== "pro") {
+      if (q.mode === "guest") {
+        setUpsell("guest");
+        setAuthOpen(true);
+        setStatus("Guest scans used — sign in for 5 more.");
+        return;
+      }
+      setUpsell("free");
+      setStatus("Free scans used — upgrade to continue.");
+      return;
+    }
+
     setScan(null);
     setPhase("running");
     setStatus("Starting authorized scan…");
@@ -50,6 +83,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       setScan(created);
       if (created.claim_token) rememberClaimToken(created.id, created.claim_token);
       rememberGuestScan({ id: created.id, url: created.url });
+      void refreshQuota();
       setStatus(`Engaging ${created.url.replace(/^https?:\/\//, "")}…`);
 
       let final: Scan | null = null;
@@ -64,9 +98,13 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
         if (current.status === "queued") {
           setStatus("In queue — waiting for a worker…");
         } else if (active) {
-          setStatus(`Probing · ${active.label}${count ? ` · ${count} signal${count === 1 ? "" : "s"}` : ""}`);
+          setStatus(
+            `Probing · ${active.label}${count ? ` · ${count} signal${count === 1 ? "" : "s"}` : ""}`,
+          );
         } else {
-          setStatus(`Scanning · ${cleared}/${progress.length || "…"} checks${count ? ` · ${count} signals` : ""}`);
+          setStatus(
+            `Scanning · ${cleared}/${progress.length || "…"} checks${count ? ` · ${count} signals` : ""}`,
+          );
         }
         if (current.status === "done" || current.status === "failed") {
           final = current;
@@ -81,7 +119,23 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       setReport(md);
       setPhase("done");
       setStatus("Scan complete.");
+      void refreshQuota();
     } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.code === "GUEST_QUOTA_EXCEEDED") {
+          setUpsell("guest");
+          setAuthOpen(true);
+          setPhase("idle");
+          setStatus("Guest scans used — sign in for 5 more.");
+          return;
+        }
+        if (err.code === "FREE_QUOTA_EXCEEDED") {
+          setUpsell("free");
+          setPhase("idle");
+          setStatus("Free scans used — upgrade to continue.");
+          return;
+        }
+      }
       setPhase("error");
       setError(err instanceof Error ? err.message : String(err));
       setStatus("Could not complete the scan.");
@@ -105,6 +159,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       const updated = await claimScan(scan.id, token);
       setScan(updated);
       setClaimMsg("Saved to My scans.");
+      void refreshQuota();
     } catch (err) {
       setClaimMsg(err instanceof Error ? err.message : String(err));
     } finally {
@@ -114,14 +169,38 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
 
   const findings: Finding[] = scan?.findings ?? [];
   const canClaim = phase === "done" && scan && !scan.owner_id;
+  const remainingLabel = quota
+    ? quota.mode === "guest"
+      ? `${quota.remaining} of ${quota.limit} guest scans left`
+      : quota.mode === "pro"
+        ? "Pro · unlimited for your plan"
+        : `${quota.remaining} of ${quota.limit} Free scans left`
+    : null;
 
   return (
     <div className="w-full">
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        title={upsell === "guest" ? "Sign in for 5 Free scans" : "Sign in to continue"}
+        body={
+          upsell === "guest"
+            ? "Your 2 guest trials are done. Sign in with Google for 5 detect-only scans on Free—then upgrade when you need more."
+            : "Save history, claim this brief, and keep scanning under your Free allowance."
+        }
+      />
+
       <form onSubmit={onSubmit} className="animate-rise-delay-2 flex w-full flex-col gap-4">
-        <label className="text-sm font-medium text-[var(--muted)]" htmlFor="target-url">
-          Website URL
-        </label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <label className="text-sm font-medium text-[var(--muted)]" htmlFor="target-url">
+            Website URL
+          </label>
+          {remainingLabel && (
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--brand)]">
+              {remainingLabel}
+            </p>
+          )}
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
           <input
             id="target-url"
@@ -139,6 +218,18 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
           >
             {phase === "running" ? "Scanning…" : "Start scan"}
           </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {TRUST.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-white/70 px-2.5 py-1 font-mono text-[11px] text-[var(--brand-deep)]"
+            >
+              <span className="h-1 w-1 rounded-full bg-[var(--accent)]" />
+              {t}
+            </span>
+          ))}
         </div>
 
         <label className="flex max-w-2xl cursor-pointer items-start gap-3 text-sm leading-snug text-[var(--muted)]">
@@ -162,6 +253,12 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
         )}
         <span>{status}</span>
       </div>
+
+      {upsell && (
+        <div className="mt-8">
+          <UpsellPanel reason={upsell} />
+        </div>
+      )}
 
       {phase === "running" && scan && (
         <ScanProgress
@@ -194,7 +291,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       )}
 
       {(phase === "done" || (phase === "running" && findings.length > 0)) && scan && (
-        <ScanResults scan={scan} report={report} />
+        <ScanResults scan={scan} report={report} showNextSteps={phase === "done"} />
       )}
     </div>
   );

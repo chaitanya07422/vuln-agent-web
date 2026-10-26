@@ -3,7 +3,17 @@
 import { useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 
-export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function AuthModal({
+  open,
+  onClose,
+  title = "Sign in to continue",
+  body = "One Google account. History, share links, and exports stay with you.",
+}: {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  body?: string;
+}) {
   const { login } = useAuth();
 
   useEffect(() => {
@@ -50,11 +60,9 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
           id="auth-modal-title"
           className="mt-2 font-[family-name:var(--font-display)] text-[1.85rem] leading-tight tracking-tight text-[var(--ink)]"
         >
-          Sign in to scan
+          {title}
         </h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)]">
-          One Google account. History, share links, and exports stay with you.
-        </p>
+        <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)]">{body}</p>
         <button
           type="button"
           onClick={login}
@@ -64,7 +72,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
           Continue with Google
         </button>
         <p className="mt-4 text-center text-xs leading-relaxed text-[var(--muted)]">
-          New here? Signing in creates your account.
+          New here? Signing in creates your Free account with 5 scans.
         </p>
       </div>
     </div>

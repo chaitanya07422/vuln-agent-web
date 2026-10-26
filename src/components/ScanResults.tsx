@@ -56,7 +56,15 @@ function Action({
   );
 }
 
-export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
+export function ScanResults({
+  scan,
+  report,
+  showNextSteps = false,
+}: {
+  scan: Scan;
+  report: string;
+  showNextSteps?: boolean;
+}) {
   const { user, login } = useAuth();
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -72,6 +80,7 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
         ORDER.indexOf(b.severity as (typeof ORDER)[number]),
     );
   const actionable = findings.filter((f) => ["critical", "high", "medium"].includes(f.severity));
+  const topFixes = actionable.slice(0, 2);
   const summary = buildDisplaySummary(scan);
   const allClear = Boolean(summary.all_clear);
   const shareUrl =
@@ -111,6 +120,54 @@ export function ScanResults({ scan, report }: { scan: Scan; report: string }) {
 
   return (
     <section className="mt-12 animate-rise">
+      {showNextSteps && scan.status === "done" && (
+        <div className="mb-8 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--brand-soft)]/35">
+          <div className="px-5 py-4 sm:px-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--brand)]">
+              What now
+            </p>
+            <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
+              {allClear ? "Looks solid — share or recheck later" : "Fix the top items, then rescan"}
+            </h3>
+            {!allClear && topFixes.length > 0 && (
+              <ol className="mt-3 list-decimal space-y-1.5 pl-4 text-sm text-[var(--ink)]/90">
+                {topFixes.map((f) => (
+                  <li key={`${f.agent}-${f.title}`}>
+                    <span className="font-medium">{f.title}</span>
+                    {f.fix ? <span className="text-[var(--muted)]"> — {f.fix}</span> : null}
+                  </li>
+                ))}
+              </ol>
+            )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void onCopy()}
+                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)]"
+              >
+                {copied ? "Link copied" : "Share link"}
+              </button>
+              <a
+                href={`/v1/scans/${scan.id}/report.html`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)]"
+              >
+                Open HTML / PDF
+              </a>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void onRescan()}
+                className="rounded-lg bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+              >
+                {busy ? "Rescanning…" : user ? "Rescan" : "Sign in to rescan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)]">
