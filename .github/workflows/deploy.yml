@@ -85,8 +85,9 @@ jobs:
             export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:/usr/bin:$PATH"
             command -v pm2 >/dev/null || { echo "pm2 not installed"; exit 1; }
 
-            cp "$WEB/ecosystem.config.cjs" /home/ubuntu/apps/scanlead/ecosystem.web.cjs
-            pm2 startOrReload /home/ubuntu/apps/scanlead/ecosystem.web.cjs --update-env
+            # PM2 7 startOrReload can crash on .cjs; delete + start is reliable
+            pm2 delete scanlead-web 2>/dev/null || true
+            pm2 start "$WEB/ecosystem.config.cjs" --update-env
             pm2 save
 
             for i in $(seq 1 20); do
