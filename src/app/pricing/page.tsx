@@ -8,6 +8,7 @@ import { PlanBadge } from "@/components/PlanBadge";
 import { useAuth } from "@/components/AuthProvider";
 import { createCheckout, getPlans, syncBilling } from "@/lib/api";
 import { RetryBanner } from "@/components/RetryBanner";
+import { trackEvent } from "@/lib/analytics";
 
 type PlansPayload = {
   currency: string;
@@ -76,6 +77,7 @@ function PricingBody() {
   }, [params, user, refresh]);
 
   async function upgrade(interval: "month" | "year" | "once", planId?: string) {
+    trackEvent("checkout_click", { interval, plan_id: planId || interval, signed_in: Boolean(user) });
     if (!user) {
       login();
       return;
@@ -89,8 +91,10 @@ function PricingBody() {
         setBusy(false);
         return;
       }
+      trackEvent("checkout_redirect", { interval, plan_id: planId || interval });
       window.location.href = order.checkout_url;
     } catch (err) {
+      trackEvent("checkout_failed", { interval });
       setMsg(err instanceof Error ? err.message : String(err));
       setBusy(false);
     }

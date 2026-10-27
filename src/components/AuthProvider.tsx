@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { fetchMe, googleLoginUrl, logout as apiLogout, type User } from "@/lib/auth";
 import { claimGuestScans } from "@/lib/api";
 import { setAccessToken } from "@/lib/session";
+import { identifyUser, resetAnalytics, trackEvent } from "@/lib/analytics";
 
 type AuthCtx = {
   user: User | null;
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const me = await fetchMe();
     setUser(me);
     if (me) {
+      identifyUser(me);
       await claimGuestScans();
     }
   }, []);
@@ -34,7 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const me = await fetchMe();
         if (!cancelled) {
           setUser(me);
-          if (me) await claimGuestScans();
+          if (me) {
+            identifyUser(me);
+            await claimGuestScans();
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -45,18 +50,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (user) identifyUser(user);
+  }, [user]);
+
   const value = useMemo<AuthCtx>(
     () => ({
       user,
       loading,
       refresh,
       login: () => {
+        trackEvent("login_click", { source: "auth_provider" });
         window.location.href = googleLoginUrl();
       },
       logout: async () => {
+        trackEvent("logout");
         await apiLogout();
         setAccessToken(null);
         setUser(null);
+        resetAnalytics();
       },
     }),
     [user, loading, refresh],

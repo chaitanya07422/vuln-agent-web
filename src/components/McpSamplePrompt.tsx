@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 export const MCP_SAMPLE_PROMPT = `Use the ScanLead MCP tools to run a detect-only vulnerability scan on https://example.com.
 
@@ -21,6 +22,7 @@ export function McpSamplePrompt({ dark = false }: { dark?: boolean }) {
     try {
       await navigator.clipboard.writeText(MCP_SAMPLE_PROMPT);
       setCopied(true);
+      trackEvent("mcp_sample_prompt_copied");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       /* ignore */

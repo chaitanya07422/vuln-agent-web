@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { HomeScanForm } from "@/components/HomeScanForm";
 import { HomeSpecialistMock } from "@/components/HomeSpecialistMock";
 import { McpSamplePrompt } from "@/components/McpSamplePrompt";
+import { TrackLink } from "@/components/TrackLink";
 
 const CHECKS = [
   { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
@@ -102,18 +103,22 @@ export default function Home() {
                 prompt like the sample. Free includes 1 MCP scan after login.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
+                <TrackLink
                   href="/settings"
+                  event="mcp_cta_click"
+                  eventProps={{ target: "settings", source: "home_mcp" }}
                   className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[var(--brand-deep)] transition hover:bg-[#e8f0eb]"
                 >
                   Sign in · get API key
-                </Link>
-                <Link
+                </TrackLink>
+                <TrackLink
                   href="/pricing"
+                  event="mcp_cta_click"
+                  eventProps={{ target: "pricing", source: "home_mcp" }}
                   className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
                   Free · 1 MCP after login
-                </Link>
+                </TrackLink>
               </div>
             </div>
             <McpSamplePrompt dark />

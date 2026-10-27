@@ -30,6 +30,9 @@ jobs:
         run: npm run build
         env:
           API_URL: http://127.0.0.1:8000
+          # Same PostHog project as portfolio (set in repo secrets)
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
 
       - name: Pack standalone release
         run: |

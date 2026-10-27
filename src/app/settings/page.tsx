@@ -12,6 +12,7 @@ import {
   listApiKeys,
   type ApiKeyMeta,
 } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import { McpSamplePrompt } from "@/components/McpSamplePrompt";
 
 const MCP_TOOLS = [
@@ -78,7 +79,9 @@ export default function SettingsPage() {
       setMcpFreeLimit(data.mcp_free_limit ?? 1);
       setFreshKey(data.api_key);
       setName("");
+      trackEvent("api_key_created", { plan: user?.plan || "free", key_count: data.keys?.length ?? 0 });
     } catch (err) {
+      trackEvent("api_key_create_failed", { plan: user?.plan || "free" });
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
@@ -93,6 +96,7 @@ export default function SettingsPage() {
       const data = await deleteApiKey(id);
       setKeys(data.keys || []);
       if (freshKey) setFreshKey("");
+      trackEvent("api_key_revoked", { plan: user?.plan || "free" });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -105,6 +109,7 @@ export default function SettingsPage() {
     try {
       await navigator.clipboard.writeText(freshKey);
       setCopied(true);
+      trackEvent("api_key_copied");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setError("Could not copy to clipboard");

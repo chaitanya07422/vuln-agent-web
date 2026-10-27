@@ -14,6 +14,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { AuthModal } from "@/components/AuthModal";
 import { RetryBanner } from "@/components/RetryBanner";
 import { UpsellPanel } from "@/components/UpsellPanel";
+import { trackEvent } from "@/lib/analytics";
 
 type Phase = "idle" | "starting" | "error";
 
@@ -52,6 +53,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
 
     const q = await refreshQuota();
     if (q && !q.can_scan && q.mode !== "pro") {
+      trackEvent("scan_blocked_quota", { mode: q.mode, plan: user?.plan || q.mode });
       if (q.mode === "guest") {
         setUpsell("guest");
         setAuthOpen(true);
@@ -65,17 +67,27 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
 
     setPhase("starting");
     setStatus("Starting authorized scan…");
+    trackEvent("scan_start_click", {
+      attested,
+      plan: user?.plan || "guest",
+      mode: q?.mode || (user ? "free" : "guest"),
+    });
 
     try {
       const created = await createScan(url.trim(), attested);
       if (created.claim_token) rememberClaimToken(created.id, created.claim_token);
       rememberGuestScan({ id: created.id, url: created.url });
+      trackEvent("scan_started", {
+        scan_id: created.id,
+        plan: user?.plan || "guest",
+      });
       void refreshQuota();
       setStatus("Opening live engagement…");
       // Live /scan page owns progress + results (avoids homepage fake timeouts).
       router.push(`/scan/${created.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
+        trackEvent("scan_start_failed", { code: err.code || "api_error", status: err.status });
         if (err.code === "GUEST_QUOTA_EXCEEDED") {
           setUpsell("guest");
           setAuthOpen(true);
@@ -89,6 +101,8 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
           setStatus("Free scan limit reached — upgrade for full briefs.");
           return;
         }
+      } else {
+        trackEvent("scan_start_failed", { code: "unknown" });
       }
       setPhase("error");
       setError(err instanceof Error ? err.message : String(err));

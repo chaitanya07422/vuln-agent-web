@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { PlanBadge } from "@/components/PlanBadge";
 import { useScanLiveLock } from "@/components/ScanLiveLock";
+import { trackEvent } from "@/lib/analytics";
 
 export function SiteHeader() {
   const { user, loading, login, logout } = useAuth();
@@ -90,6 +91,7 @@ export function SiteHeader() {
               </Link>
               <Link
                 href="/#mcp"
+                onClick={() => trackEvent("mcp_nav_click", { source: "header" })}
                 className="hidden items-center gap-1.5 rounded-lg border border-[var(--brand)]/25 bg-[var(--brand-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] sm:inline-flex"
               >
                 <span className="scan-pulse inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
