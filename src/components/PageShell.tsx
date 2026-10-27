@@ -25,36 +25,39 @@ export function PageShell({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.22]"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.2]"
         style={{
           backgroundImage:
             "linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px)",
           backgroundSize: "72px 72px",
-          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.45), transparent 62%)",
+          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.4), transparent 58%)",
         }}
       />
       <SiteHeader />
       <main
-        className={`mx-auto w-full flex-1 px-5 pb-16 pt-6 sm:px-8 sm:pt-8 ${
+        className={`mx-auto w-full flex-1 px-4 pb-12 pt-5 sm:px-8 sm:pb-14 sm:pt-6 ${
           narrow ? "max-w-3xl" : "max-w-6xl"
         }`}
       >
         {children}
       </main>
-      <footer className="mt-auto border-t border-[var(--line)]/80 bg-white/70">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+      <footer className="mt-auto border-t border-[var(--line)]/80 bg-white/75">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-7">
           <Link
             href="/"
             className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]"
           >
             ScanLead
           </Link>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <Link href="/pricing" className="hover:text-[var(--ink)]">
               Pricing
             </Link>
             <Link href="/scans" className="hover:text-[var(--ink)]">
               My scans
+            </Link>
+            <Link href="/settings" className="hover:text-[var(--ink)]">
+              MCP Agents
             </Link>
             <span>Authorized targets only</span>
           </div>

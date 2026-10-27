@@ -26,33 +26,46 @@ export function googleLoginUrl(): string {
   return "/v1/auth/google";
 }
 
+const AUTH_TIMEOUT_MS = 8000;
+
 export async function refreshSession(): Promise<User | null> {
-  const res = await fetch("/v1/auth/refresh", {
-    method: "POST",
-    credentials: "include",
-  });
-  if (!res.ok) {
+  try {
+    const res = await fetch("/v1/auth/refresh", {
+      method: "POST",
+      credentials: "include",
+      signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      setAccessToken(null);
+      return null;
+    }
+    const data = await res.json();
+    setAccessToken(data.access_token || null);
+    return data.user || null;
+  } catch {
     setAccessToken(null);
     return null;
   }
-  const data = await res.json();
-  setAccessToken(data.access_token || null);
-  return data.user || null;
 }
 
 export async function fetchMe(): Promise<User | null> {
-  if (!getAccessToken()) {
-    return refreshSession();
+  try {
+    if (!getAccessToken()) {
+      return refreshSession();
+    }
+    const res = await fetch("/v1/auth/me", {
+      headers: authHeaders(),
+      credentials: "include",
+      signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+    });
+    if (res.status === 401) {
+      return refreshSession();
+    }
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
-  const res = await fetch("/v1/auth/me", {
-    headers: authHeaders(),
-    credentials: "include",
-  });
-  if (res.status === 401) {
-    return refreshSession();
-  }
-  if (!res.ok) return null;
-  return res.json();
 }
 
 export async function logout(): Promise<void> {

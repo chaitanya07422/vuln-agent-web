@@ -69,11 +69,11 @@ export default function MyScansPage() {
 
   return (
     <PageShell>
-      <div className="animate-rise flex flex-wrap items-end justify-between gap-5">
+      <div className="animate-rise flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="kicker">Library</p>
           <h1 className="mt-2 display text-4xl sm:text-5xl">My scans</h1>
-          <p className="mt-3 text-[var(--muted)]">Saved briefs for your Google account.</p>
+          <p className="mt-2 text-[var(--muted)]">Saved briefs for your Google account.</p>
         </div>
         {user && (
           <div className="flex flex-wrap items-center gap-4">
@@ -109,9 +109,9 @@ export default function MyScansPage() {
       </div>
 
       {loading ? (
-        <p className="mt-14 font-mono text-sm text-[var(--muted)]">Loading…</p>
+        <p className="mt-8 font-mono text-sm text-[var(--muted)]">Loading…</p>
       ) : !user ? (
-        <div className="animate-rise-delay surface mt-10 max-w-lg p-6 sm:p-8">
+        <div className="animate-rise-delay surface mt-8 max-w-lg p-6 sm:p-8">
           <p className="display text-2xl">Sign in to keep briefs</p>
           <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
             Guest scans stay on this device until you claim them. Sign in to sync history across

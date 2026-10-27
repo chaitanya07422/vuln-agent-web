@@ -31,6 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const safety = window.setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 9000);
     (async () => {
       try {
         const me = await fetchMe();
@@ -38,15 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(me);
           if (me) {
             identifyUser(me);
-            await claimGuestScans();
+            await claimGuestScans().catch(() => undefined);
           }
         }
       } finally {
         if (!cancelled) setLoading(false);
+        window.clearTimeout(safety);
       }
     })();
     return () => {
       cancelled = true;
+      window.clearTimeout(safety);
     };
   }, []);
 

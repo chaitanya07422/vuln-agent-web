@@ -50,29 +50,32 @@ export default function Home() {
       <SiteHeader />
 
       <main>
-        {/* Hero — brand + one line + ScanForm */}
-        <section className="mx-auto flex w-full max-w-6xl flex-col justify-center px-5 pb-12 pt-8 sm:px-8 sm:pb-14 sm:pt-10">
-          <p className="animate-rise kicker text-xs tracking-[0.18em]">
+        {/* Hero — brand + scan form */}
+        <section className="mx-auto w-full max-w-6xl px-4 pb-8 pt-4 sm:px-8 sm:pb-10 sm:pt-5">
+          <p className="animate-rise kicker text-[11px] tracking-[0.16em]">
             Authorized external checks
           </p>
-          <h1 className="animate-rise-delay mt-3 max-w-3xl font-[family-name:var(--font-display)] text-5xl leading-[1.04] tracking-tight text-[var(--ink)] sm:text-6xl md:text-7xl">
+          <h1 className="animate-rise-delay mt-1.5 max-w-3xl font-[family-name:var(--font-display)] text-4xl leading-[1.05] tracking-tight text-[var(--ink)] sm:text-5xl md:text-[3.5rem]">
             ScanLead
           </h1>
-          <p className="animate-rise-delay mt-5 max-w-xl text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
+          <p className="animate-rise-delay mt-2.5 max-w-xl text-base leading-relaxed text-[var(--muted)] sm:text-lg">
             Authorized detect-only scans. A company brief—not a letter grade.
           </p>
 
-          <div id="scan" className="mt-8 max-w-3xl scroll-mt-28 sm:mt-10">
+          <div
+            id="scan"
+            className="surface animate-rise-delay-2 mt-5 max-w-3xl scroll-mt-24 p-4 shadow-[0_1px_0_rgba(19,32,26,0.04)] sm:mt-6 sm:p-5"
+          >
             <Suspense fallback={<p className="font-mono text-sm text-[var(--muted)]">Loading form…</p>}>
               <HomeScanForm />
             </Suspense>
           </div>
         </section>
 
-        {/* MCP Agent — top highlight */}
+        {/* MCP Agent */}
         <section
           id="mcp"
-          className="scroll-mt-28 relative overflow-hidden border-t border-[var(--brand)]/25 bg-[var(--brand-deep)] text-[#e8f0eb]"
+          className="scroll-mt-24 relative overflow-hidden border-t border-[var(--brand)]/20 bg-[var(--brand-deep)] text-[#e8f0eb]"
         >
           <div
             aria-hidden
@@ -84,7 +87,7 @@ export default function Home() {
               `,
             }}
           />
-          <div className="relative mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:py-16">
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-8 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-10">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-md bg-[var(--accent)]/25 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#b8f0d4]">
@@ -94,10 +97,10 @@ export default function Home() {
                   MCP Agent
                 </span>
               </div>
-              <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl tracking-tight text-white sm:text-4xl md:text-5xl">
+              <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl tracking-tight text-white sm:text-3xl md:text-4xl">
                 Run ScanLead from your agent
               </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#b7c9bf] sm:text-lg">
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#b7c9bf] sm:text-base">
                 Sign in with Google, create an API key under MCP Agents, connect{" "}
                 <code className="font-mono text-sm text-white">scanlead-mcp</code>, then paste a
                 prompt like the sample. Free includes 1 MCP scan after login.
@@ -110,29 +113,29 @@ export default function Home() {
 
         {/* What we never do */}
         <section className="border-t border-[var(--line)] bg-[var(--ink)] text-[#e8f0eb]">
-          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3 sm:gap-10 sm:px-8 sm:py-14">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3 sm:gap-8 sm:px-8 sm:py-12">
             {NEVER.map((item) => (
               <div key={item.t}>
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
                   Never
                 </p>
-                <h2 className="mt-2 font-[family-name:var(--font-display)] text-xl tracking-tight">
+                <h2 className="mt-1.5 font-[family-name:var(--font-display)] text-lg tracking-tight sm:text-xl">
                   {item.t}
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-[#b7c9bf]">{item.b}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-[#b7c9bf]">{item.b}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Why ScanLead */}
-        <section id="why" className="scroll-mt-28 border-t border-[var(--line)] bg-white/70 py-20">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <p className="kicker text-xs tracking-[0.16em]">Why ScanLead</p>
-            <h2 className="mt-3 max-w-2xl font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+        <section id="why" className="scroll-mt-24 border-t border-[var(--line)] bg-white/70 py-12 sm:py-14">
+          <div className="mx-auto max-w-6xl px-4 sm:px-8">
+            <p className="kicker text-[11px] tracking-[0.16em]">Why ScanLead</p>
+            <h2 className="mt-2 max-w-2xl font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)] sm:text-3xl md:text-4xl">
               Built for the gap between a free grade and an enterprise platform.
             </h2>
-            <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-16">
+            <div className="mt-8 grid gap-8 md:grid-cols-2 md:gap-12">
               <div>
                 <h3 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
                   Not another letter grade
@@ -157,20 +160,20 @@ export default function Home() {
         </section>
 
         {/* Specialists live */}
-        <section className="border-t border-[var(--line)] py-20">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+        <section className="border-t border-[var(--line)] py-12 sm:py-14">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--brand)]">
                 Specialists, live
               </p>
-              <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+              <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)] sm:text-3xl md:text-4xl">
                 One agent at a time—not a silent spinner.
               </h2>
-              <p className="mt-4 max-w-md leading-relaxed text-[var(--muted)]">
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--muted)] sm:text-base">
                 See what’s probing now, what cleared, and what’s next. The scan feels like a real
                 engagement, because it is: parallel specialists reporting in as they finish.
               </p>
-              <Link href="/#scan" className="btn-secondary mt-8">
+              <Link href="/#scan" className="btn-secondary mt-6">
                 Run a scan →
               </Link>
             </div>
@@ -179,20 +182,20 @@ export default function Home() {
         </section>
 
         {/* Company-ready brief */}
-        <section className="border-t border-[var(--line)] bg-white/60 py-20">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
+        <section className="border-t border-[var(--line)] bg-white/60 py-12 sm:py-14">
+          <div className="mx-auto max-w-6xl px-4 sm:px-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--brand)]">
               Deliverable
             </p>
-            <h2 className="mt-3 max-w-2xl font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+            <h2 className="mt-2 max-w-2xl font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)] sm:text-3xl md:text-4xl">
               A company-ready brief you can share.
             </h2>
-            <p className="mt-4 max-w-2xl text-[var(--muted)]">
+            <p className="mt-3 max-w-2xl text-sm text-[var(--muted)] sm:text-base">
               Severity, evidence, fixes, and a short abuse-path story—written for engineering and
               leadership, not a raw scanner dump.
             </p>
 
-            <div className="surface mt-10 shadow-[0_1px_0_rgba(19,32,26,0.04)]">
+            <div className="surface mt-8 shadow-[0_1px_0_rgba(19,32,26,0.04)]">
               <div className="border-b border-[var(--line)]/80 px-5 py-4 sm:px-6">
                 <p className="kicker">Security brief</p>
                 <p className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
@@ -246,20 +249,20 @@ export default function Home() {
         </section>
 
         {/* What we check */}
-        <section id="checks" className="scroll-mt-28 border-t border-[var(--line)] py-20">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <p className="kicker text-xs tracking-[0.16em]">Coverage</p>
-            <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+        <section id="checks" className="scroll-mt-24 border-t border-[var(--line)] py-12 sm:py-14">
+          <div className="mx-auto max-w-6xl px-4 sm:px-8">
+            <p className="kicker text-[11px] tracking-[0.16em]">Coverage</p>
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)] sm:text-3xl md:text-4xl">
               What we check
             </h2>
-            <p className="mt-3 max-w-2xl text-[var(--muted)]">
+            <p className="mt-2 max-w-2xl text-sm text-[var(--muted)] sm:text-base">
               Detect exposure. Do not exploit. Each pack is a short, auditable probe.
             </p>
-            <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
               {CHECKS.map((item) => (
                 <div key={item.title}>
-                  <h3 className="text-lg font-semibold text-[var(--ink)]">{item.title}</h3>
-                  <p className="mt-2 leading-relaxed text-[var(--muted)]">{item.body}</p>
+                  <h3 className="text-base font-semibold text-[var(--ink)] sm:text-lg">{item.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">{item.body}</p>
                 </div>
               ))}
             </div>
@@ -267,12 +270,12 @@ export default function Home() {
         </section>
 
         {/* Built for trust */}
-        <section id="method" className="border-t border-[var(--line)] bg-white/60 py-20">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
+        <section id="method" className="border-t border-[var(--line)] bg-white/60 py-12 sm:py-14">
+          <div className="mx-auto max-w-6xl px-4 sm:px-8">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)] sm:text-3xl md:text-4xl">
               Built for trust
             </h2>
-            <div className="mt-10 grid gap-10 md:grid-cols-3">
+            <div className="mt-8 grid gap-7 md:grid-cols-3 md:gap-8">
               {[
                 {
                   n: "01",
@@ -291,11 +294,11 @@ export default function Home() {
                 },
               ].map((item) => (
                 <div key={item.n}>
-                  <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--brand)]">
                     {item.n}
                   </p>
-                  <h3 className="mt-2 text-lg font-semibold">{item.t}</h3>
-                  <p className="mt-2 leading-relaxed text-[var(--muted)]">{item.b}</p>
+                  <h3 className="mt-1.5 text-base font-semibold sm:text-lg">{item.t}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">{item.b}</p>
                 </div>
               ))}
             </div>
@@ -304,35 +307,22 @@ export default function Home() {
 
       </main>
 
-      <footer className="border-t border-[var(--line)] bg-white/80 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 text-sm text-[var(--muted)] sm:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <span className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]">
-              ScanLead
-            </span>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <Link href="/pricing" className="hover:text-[var(--ink)]">
-                Pricing
-              </Link>
-              <Link href="/scans" className="hover:text-[var(--ink)]">
-                My scans
-              </Link>
-              <Link href="/settings" className="hover:text-[var(--ink)]">
-                MCP Agent
-              </Link>
-              <p>Authorized targets only</p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-1 border-t border-[var(--line)]/80 pt-4 sm:flex-row sm:items-center sm:gap-6">
-            <a
-              href="mailto:kadavakolluchaitanya@gmail.com"
-              className="hover:text-[var(--ink)]"
-            >
-              kadavakolluchaitanya@gmail.com
-            </a>
-            <a href="tel:+918125859799" className="hover:text-[var(--ink)]">
-              +91 8125859799
-            </a>
+      <footer className="border-t border-[var(--line)] bg-white/80">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-7">
+          <span className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]">
+            ScanLead
+          </span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link href="/pricing" className="hover:text-[var(--ink)]">
+              Pricing
+            </Link>
+            <Link href="/scans" className="hover:text-[var(--ink)]">
+              My scans
+            </Link>
+            <Link href="/settings" className="hover:text-[var(--ink)]">
+              MCP Agents
+            </Link>
+            <span>Authorized targets only</span>
           </div>
         </div>
       </footer>

@@ -18,7 +18,7 @@ import { trackEvent } from "@/lib/analytics";
 
 type Phase = "idle" | "starting" | "error";
 
-const TRUST = ["Detect-only", "No password sprays", "~4–6 min"];
+const TRUST = ["Detect-only", "No sprays", "~4–6 min"];
 
 export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
   const router = useRouter();
@@ -26,7 +26,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
   const [url, setUrl] = useState(initialUrl);
   const [attested, setAttested] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
-  const [status, setStatus] = useState("Ready when you are.");
+  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
   const [upsell, setUpsell] = useState<"guest" | "free" | null>(null);
@@ -57,7 +57,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       if (q.mode === "guest") {
         setUpsell("guest");
         setAuthOpen(true);
-        setStatus("Guest scans used — sign in for 2 full Free briefs.");
+        setStatus("Guest scans used — sign in for Free briefs.");
         return;
       }
       setUpsell("free");
@@ -83,7 +83,6 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       });
       void refreshQuota();
       setStatus("Opening live engagement…");
-      // Live /scan page owns progress + results (avoids homepage fake timeouts).
       router.push(`/scan/${created.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -92,7 +91,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
           setUpsell("guest");
           setAuthOpen(true);
           setPhase("idle");
-          setStatus("Guest scans used — sign in for 2 full Free briefs.");
+          setStatus("Guest scans used — sign in for Free briefs.");
           return;
         }
         if (err.code === "FREE_QUOTA_EXCEEDED") {
@@ -112,10 +111,10 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
 
   const remainingLabel = quota
     ? quota.mode === "guest"
-      ? `${quota.remaining} of ${quota.limit} guest · next ${quota.next_detail || "full"}`
+      ? `${quota.remaining}/${quota.limit} guest`
       : quota.mode === "pro"
         ? "Pro · full briefs"
-        : `${quota.full_remaining ?? 0} full Free left · next ${quota.next_detail || "teaser"}`
+        : `${quota.full_remaining ?? 0} full Free left`
     : null;
 
   return (
@@ -123,26 +122,27 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        title={upsell === "guest" ? "Sign in for 2 full Free briefs" : "Sign in to continue"}
+        title={upsell === "guest" ? "Sign in for Free briefs" : "Sign in to continue"}
         body={
           upsell === "guest"
-            ? "Guest gives 1 full brief + 1 locked preview. Sign in with Google for 2 more full Free briefs—then previews until you upgrade."
+            ? "Guest gives 1 full brief + 1 locked preview. Sign in with Google for more Free briefs."
             : "Save history, claim this brief, and keep scanning under your Free allowance."
         }
       />
 
-      <form onSubmit={onSubmit} className="animate-rise-delay-2 flex w-full flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-2">
+      <form onSubmit={onSubmit} className="flex w-full flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-sm font-medium text-[var(--muted)]" htmlFor="target-url">
             Website URL
           </label>
           {remainingLabel && (
-            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--brand)]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--brand)]">
               {remainingLabel}
             </p>
           )}
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-stretch">
           <input
             id="target-url"
             type="url"
@@ -150,22 +150,22 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
             placeholder="https://your-company.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="min-h-14 flex-1 rounded-xl border border-[var(--line)] bg-white px-4 text-base text-[var(--ink)] shadow-[0_1px_0_rgba(19,32,26,0.03)] outline-none ring-[var(--brand)] placeholder:text-[#9aaca3] focus:border-[var(--brand)] focus:ring-2"
+            className="min-h-12 flex-1 rounded-xl border border-[var(--line)] bg-white px-3.5 text-base text-[var(--ink)] outline-none ring-[var(--brand)] placeholder:text-[#9aaca3] focus:border-[var(--brand)] focus:ring-2 sm:min-h-12"
           />
           <button
             type="submit"
             disabled={phase === "starting" || !attested}
-            className="btn-primary min-h-14 px-7 text-base disabled:opacity-45"
+            className="btn-primary min-h-12 shrink-0 px-6 text-sm disabled:opacity-45 sm:px-7"
           >
             {phase === "starting" ? "Starting…" : "Start scan"}
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           {TRUST.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-white/70 px-2.5 py-1 font-mono text-[11px] text-[var(--brand-deep)]"
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--line)]/80 bg-[var(--bg)]/80 px-2 py-0.5 font-mono text-[10px] text-[var(--brand-deep)]"
             >
               <span className="h-1 w-1 rounded-full bg-[var(--accent)]" />
               {t}
@@ -173,30 +173,31 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
           ))}
         </div>
 
-        <label className="flex max-w-2xl cursor-pointer items-start gap-3 text-sm leading-snug text-[var(--muted)]">
+        <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-snug text-[var(--muted)]">
           <input
             type="checkbox"
             checked={attested}
             onChange={(e) => setAttested(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-[var(--brand)]"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand)]"
             required
           />
           <span>
-            I own this website or have written authorization to test it. Scans are detect-only —
-            no password sprays or exploitation.
+            I own this site or am authorized to test it. Detect-only — no sprays or exploits.
           </span>
         </label>
       </form>
 
-      <div className="mt-5 flex items-center gap-3 px-1 font-mono text-sm text-[var(--muted)]">
-        {phase === "starting" && (
-          <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
-        )}
-        <span>{status}</span>
-      </div>
+      {(phase === "starting" || status) && (
+        <div className="mt-3 flex items-center gap-2 font-mono text-xs text-[var(--muted)]">
+          {phase === "starting" && (
+            <span className="scan-pulse inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+          )}
+          <span>{status}</span>
+        </div>
+      )}
 
       {upsell && (
-        <div className="mt-8">
+        <div className="mt-5">
           <UpsellPanel reason={upsell} />
         </div>
       )}

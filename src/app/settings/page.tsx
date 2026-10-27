@@ -129,20 +129,20 @@ export default function SettingsPage() {
   return (
     <PageShell narrow>
       <div className="animate-rise">
-        <p className="kicker">MCP Agents</p>
+        <p className="kicker">API keys · Cursor</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="display text-4xl">MCP Agents</h1>
           {user && <PlanBadge plan={user.plan} />}
         </div>
-        <p className="mt-3 max-w-xl text-[var(--muted)] leading-relaxed">
+        <p className="mt-2.5 max-w-xl text-[var(--muted)] leading-relaxed">
           MCP requires a Google-signed-in account — including the Free 1 MCP scan. Keys are bound
           to this login; your agent authenticates with the key only (no Google popup).
         </p>
 
         {loading ? (
-          <p className="mt-10 font-mono text-sm text-[var(--muted)]">Loading…</p>
+          <p className="mt-8 font-mono text-sm text-[var(--muted)]">Loading…</p>
         ) : !user ? (
-          <div className="surface mt-10 overflow-hidden">
+          <div className="surface mt-8 overflow-hidden">
             <div className="border-b border-[var(--brand)]/15 bg-[var(--brand-soft)]/60 px-5 py-4 sm:px-6">
               <span className="chip chip-brand">New · MCP Agent</span>
               <h2 className="mt-2 display text-2xl">Google sign-in required</h2>

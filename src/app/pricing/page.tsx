@@ -114,14 +114,14 @@ function PricingBody() {
           <h1 className="display text-4xl sm:text-5xl">Pricing</h1>
           {user && <PlanBadge plan={user.plan} />}
         </div>
-        <p className="mt-4 text-[var(--muted)] leading-relaxed">
+        <p className="mt-3 text-[var(--muted)] leading-relaxed">
           {isPro
             ? "You’re on Pro — branded briefs, higher limits, MCP Agent, and rescan diffs are unlocked."
             : "Guest: 1 full brief + 1 locked preview. Sign in for 2 full Free briefs, then previews until Pro or a ₹60 deep brief."}
         </p>
         <Link
           href="/#mcp"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[var(--brand)]/30 bg-[var(--brand-soft)]/80 px-4 py-2.5 text-sm font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[var(--brand)]/30 bg-[var(--brand-soft)]/80 px-4 py-2.5 text-sm font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
         >
           <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
           MCP Agent — scan from your agent
@@ -132,13 +132,13 @@ function PricingBody() {
       </div>
 
       {confirming && (
-        <p className="mt-8 flex items-center gap-2 font-mono text-sm text-[var(--muted)]">
+        <p className="mt-6 flex items-center gap-2 font-mono text-sm text-[var(--muted)]">
           <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
           Confirming payment…
         </p>
       )}
 
-      <div className="mt-10 grid gap-5 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 lg:grid-cols-3">
         <div className={`surface p-6 ${isPro ? "opacity-55" : ""}`}>
           <p className="kicker">Start</p>
           <h2 className="mt-2 display text-2xl">Free</h2>
@@ -178,8 +178,14 @@ function PricingBody() {
           </ul>
           <button
             type="button"
-            disabled={busy || !ready || confirming || isPro}
-            onClick={() => void upgrade("once", "deep_scan_once")}
+            disabled={busy || confirming || isPro || (Boolean(user) && !ready)}
+            onClick={() => {
+              if (!user) {
+                login();
+                return;
+              }
+              void upgrade("once", "deep_scan_once");
+            }}
             className="btn-secondary mt-8 w-full"
           >
             {isPro ? "Included in Pro" : user ? "Buy ₹60 credit" : "Sign in to buy"}
@@ -241,15 +247,21 @@ function PricingBody() {
             <div className="mt-8 flex flex-col gap-2">
               <button
                 type="button"
-                disabled={busy || !ready || confirming}
-                onClick={() => void upgrade("month")}
+                disabled={busy || confirming || (Boolean(user) && !ready)}
+                onClick={() => {
+                  if (!user) {
+                    login();
+                    return;
+                  }
+                  void upgrade("month");
+                }}
                 className="btn-primary w-full"
               >
                 {user ? "Upgrade monthly" : "Sign in to upgrade"}
               </button>
               <button
                 type="button"
-                disabled={busy || !ready || confirming}
+                disabled={busy || confirming || !user || !ready}
                 onClick={() => void upgrade("year")}
                 className="btn-secondary w-full"
               >
