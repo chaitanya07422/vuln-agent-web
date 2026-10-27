@@ -154,7 +154,7 @@ function PricingBody() {
               <span className="mt-1 block text-xs text-[var(--muted)]">
                 Google login required · API key in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
-                  Settings
+                  MCP Agents
                 </Link>
               </span>
             </li>
@@ -211,7 +211,7 @@ function PricingBody() {
               <span className="mt-1 block text-xs text-[var(--muted)]">
                 API keys in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
-                  Settings
+                  MCP Agents
                 </Link>
               </span>
             </li>

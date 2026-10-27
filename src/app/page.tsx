@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { HomeScanForm } from "@/components/HomeScanForm";
 import { HomeSpecialistMock } from "@/components/HomeSpecialistMock";
 import { McpSamplePrompt } from "@/components/McpSamplePrompt";
-import { TrackLink } from "@/components/TrackLink";
+import { McpHomeCtas } from "@/components/McpHomeCtas";
 
 const CHECKS = [
   { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
@@ -98,28 +98,11 @@ export default function Home() {
                 Run ScanLead from your agent
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-[#b7c9bf] sm:text-lg">
-                Sign in with Google, create an API key in Settings, connect{" "}
+                Sign in with Google, create an API key under MCP Agents, connect{" "}
                 <code className="font-mono text-sm text-white">scanlead-mcp</code>, then paste a
                 prompt like the sample. Free includes 1 MCP scan after login.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <TrackLink
-                  href="/settings"
-                  event="mcp_cta_click"
-                  eventProps={{ target: "settings", source: "home_mcp" }}
-                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[var(--brand-deep)] transition hover:bg-[#e8f0eb]"
-                >
-                  Sign in · get API key
-                </TrackLink>
-                <TrackLink
-                  href="/pricing"
-                  event="mcp_cta_click"
-                  eventProps={{ target: "pricing", source: "home_mcp" }}
-                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Free · 1 MCP after login
-                </TrackLink>
-              </div>
+              <McpHomeCtas />
             </div>
             <McpSamplePrompt dark />
           </div>
@@ -332,8 +315,8 @@ export default function Home() {
               <Link href="/#scan" className="btn-primary min-h-12 px-7 text-base">
                 Start scan
               </Link>
-              <Link href="/#mcp" className="btn-secondary min-h-12 px-7 text-base">
-                MCP Agent
+              <Link href="/settings" className="btn-secondary min-h-12 px-7 text-base">
+                MCP Agents
               </Link>
             </div>
           </div>

@@ -129,9 +129,9 @@ export default function SettingsPage() {
   return (
     <PageShell narrow>
       <div className="animate-rise">
-        <p className="kicker">Account</p>
+        <p className="kicker">MCP Agents</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="display text-4xl">Settings</h1>
+          <h1 className="display text-4xl">MCP Agents</h1>
           {user && <PlanBadge plan={user.plan} />}
         </div>
         <p className="mt-3 max-w-xl text-[var(--muted)] leading-relaxed">

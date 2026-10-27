@@ -90,20 +90,20 @@ export function SiteHeader() {
                 Pricing
               </Link>
               <Link
-                href="/#mcp"
+                href="/settings"
                 onClick={() => trackEvent("mcp_nav_click", { source: "header" })}
-                className="hidden items-center gap-1.5 rounded-lg border border-[var(--brand)]/25 bg-[var(--brand-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] sm:inline-flex"
+                className={`inline-flex items-center gap-1.5 rounded-lg border border-[var(--brand)]/25 bg-[var(--brand-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] ${
+                  pathname.startsWith("/settings") ? "ring-1 ring-[var(--brand)]/40" : ""
+                }`}
+                title="API keys for Cursor MCP"
               >
                 <span className="scan-pulse inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-                MCP Agent
+                MCP Agents
               </Link>
               {user ? (
                 <>
                   <Link href="/scans" className={linkClass("/scans")}>
                     My scans
-                  </Link>
-                  <Link href="/settings" className={linkClass("/settings")} title="API keys · MCP Agent">
-                    Settings
                   </Link>
                   <div className="flex items-center gap-2 border-l border-[var(--line)]/80 pl-3 sm:pl-4">
                     {user.plan === "pro" && <PlanBadge plan="pro" size="sm" />}
