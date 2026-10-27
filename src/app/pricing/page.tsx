@@ -112,9 +112,19 @@ function PricingBody() {
         </div>
         <p className="mt-4 text-[var(--muted)] leading-relaxed">
           {isPro
-            ? "You’re on Pro — branded briefs, higher limits, and rescan diffs are unlocked."
+            ? "You’re on Pro — branded briefs, higher limits, MCP Agent, and rescan diffs are unlocked."
             : "Guest: 1 full brief + 1 locked preview. Sign in for 2 full Free briefs, then previews until Pro or a ₹60 deep brief."}
         </p>
+        <Link
+          href="/#mcp"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[var(--brand)]/30 bg-[var(--brand-soft)]/80 px-4 py-2.5 text-sm font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
+        >
+          <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
+          MCP Agent — scan from Cursor
+          <span aria-hidden className="text-[var(--muted)]">
+            →
+          </span>
+        </Link>
       </div>
 
       {confirming && (
@@ -134,11 +144,11 @@ function PricingBody() {
             <li>After signup: 2 full Free briefs</li>
             <li>Then preview-only until upgrade</li>
             <li>Share links · watermarked PDF</li>
-            <li>
-              <span className="font-medium text-[var(--ink)]">MCP Agent</span>
-              {" · "}1 Free Cursor scan
-              <span className="mt-0.5 block text-xs">
-                Create an API key in{" "}
+            <li className="rounded-lg border border-[var(--brand)]/20 bg-[var(--brand-soft)]/50 px-3 py-2.5 text-[var(--ink)]">
+              <span className="chip chip-brand mr-1.5">MCP Agent</span>
+              1 Free Cursor scan
+              <span className="mt-1 block text-xs text-[var(--muted)]">
+                API key in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
                   Settings
                 </Link>
@@ -191,10 +201,10 @@ function PricingBody() {
             <li>Full branded PDF / HTML</li>
             <li>Rescan + finding diff</li>
             <li>Higher rate limits</li>
-            <li>
-              <span className="font-medium text-[var(--ink)]">MCP Agent</span>
-              {" · "}web + Cursor share one Pro quota
-              <span className="mt-0.5 block text-xs">
+            <li className="rounded-lg border border-[var(--brand)]/25 bg-[var(--brand-soft)]/60 px-3 py-2.5 text-[var(--ink)]">
+              <span className="chip chip-brand mr-1.5">MCP Agent</span>
+              Web + Cursor share Pro quota
+              <span className="mt-1 block text-xs text-[var(--muted)]">
                 API keys in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
                   Settings

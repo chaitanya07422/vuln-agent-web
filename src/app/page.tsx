@@ -59,6 +59,16 @@ export default function Home() {
           <p className="animate-rise-delay mt-5 max-w-xl text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
             Authorized detect-only scans. A company brief—not a letter grade.
           </p>
+          <Link
+            href="/#mcp"
+            className="animate-rise-delay-2 mt-5 inline-flex items-center gap-2 self-start rounded-full border border-[var(--brand)]/30 bg-white/70 px-3.5 py-1.5 text-sm font-medium text-[var(--brand-deep)] shadow-sm backdrop-blur-sm transition hover:border-[var(--brand)] hover:bg-white"
+          >
+            <span className="scan-pulse inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+            New · MCP Agent for Cursor
+            <span aria-hidden className="text-[var(--muted)]">
+              →
+            </span>
+          </Link>
 
           <div id="scan" className="mt-10 max-w-3xl scroll-mt-28">
             <Suspense fallback={<p className="font-mono text-sm text-[var(--muted)]">Loading form…</p>}>
@@ -231,7 +241,7 @@ export default function Home() {
             <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
               Built for trust
             </h2>
-            <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-10 md:grid-cols-3">
               {[
                 {
                   n: "01",
@@ -248,11 +258,6 @@ export default function Home() {
                   t: "Company-ready brief",
                   b: "Severity, evidence, fixes, and a checklist you can share with your team.",
                 },
-                {
-                  n: "04",
-                  t: "MCP Agent in Cursor",
-                  b: "Create an API key in Settings, then start scans and fetch briefs from Cursor Agent — results save to your account.",
-                },
               ].map((item) => (
                 <div key={item.n}>
                   <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
@@ -266,6 +271,82 @@ export default function Home() {
           </div>
         </section>
 
+        {/* MCP Agent — highlighted feature */}
+        <section
+          id="mcp"
+          className="scroll-mt-28 relative overflow-hidden border-t border-[var(--brand)]/25 bg-[var(--brand-deep)] text-[#e8f0eb]"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background: `
+                radial-gradient(700px 380px at 8% 20%, rgba(26,143,106,0.45) 0%, transparent 55%),
+                radial-gradient(560px 320px at 96% 80%, rgba(228,243,236,0.12) 0%, transparent 50%)
+              `,
+            }}
+          />
+          <div className="relative mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:py-20">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-[var(--accent)]/25 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#b8f0d4]">
+                  New
+                </span>
+                <span className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#d5ebe1]">
+                  MCP Agent
+                </span>
+              </div>
+              <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl tracking-tight text-white sm:text-4xl md:text-5xl">
+                Run ScanLead from Cursor Agent
+              </h2>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#b7c9bf] sm:text-lg">
+                Create an API key once. Ask your agent to start a scan, poll status, and pull the
+                company brief — results land in My scans under your login.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/settings"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[var(--brand-deep)] transition hover:bg-[#e8f0eb]"
+                >
+                  Get API key
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Free · 1 MCP scan
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-[var(--ink)]/40 p-5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
+                Agent tools
+              </p>
+              <ul className="mt-4 space-y-3">
+                {[
+                  ["start_scan", "Authorized detect-only scan"],
+                  ["get_scan", "Live status & findings"],
+                  ["get_brief", "Markdown company brief"],
+                  ["get_quota", "Web + MCP remaining"],
+                ].map(([name, tip]) => (
+                  <li
+                    key={name}
+                    className="flex items-start gap-3 border-b border-white/10 pb-3 last:border-0 last:pb-0"
+                  >
+                    <span className="mt-0.5 font-mono text-xs font-semibold text-[#9fe0c4]">
+                      {name}
+                    </span>
+                    <span className="text-sm text-[#b7c9bf]">{tip}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 font-mono text-[11px] text-[#8aa398]">
+                scanlead-mcp · SCANLEAD_API_KEY
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Footer CTA */}
         <section className="border-t border-[var(--line)] py-16">
           <div className="mx-auto max-w-6xl px-5 text-center sm:px-8">
@@ -275,9 +356,14 @@ export default function Home() {
             <p className="mx-auto mt-3 max-w-md text-[var(--muted)]">
               Start a detect-only pass and get a brief your company can use.
             </p>
-            <Link href="/#scan" className="btn-primary mt-8 min-h-12 px-7 text-base">
-              Start scan
-            </Link>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/#scan" className="btn-primary min-h-12 px-7 text-base">
+                Start scan
+              </Link>
+              <Link href="/#mcp" className="btn-secondary min-h-12 px-7 text-base">
+                MCP Agent
+              </Link>
+            </div>
           </div>
         </section>
       </main>

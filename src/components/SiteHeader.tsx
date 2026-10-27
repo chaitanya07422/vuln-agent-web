@@ -88,6 +88,13 @@ export function SiteHeader() {
               <Link href="/pricing" className={linkClass("/pricing")}>
                 Pricing
               </Link>
+              <Link
+                href="/#mcp"
+                className="hidden items-center gap-1.5 rounded-lg border border-[var(--brand)]/25 bg-[var(--brand-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] sm:inline-flex"
+              >
+                <span className="scan-pulse inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                MCP Agent
+              </Link>
               {user ? (
                 <>
                   <Link href="/scans" className={linkClass("/scans")}>
