@@ -38,6 +38,8 @@ jobs:
           mkdir -p web-release/.next
           cp -a .next/static web-release/.next/static
           if [ -d public ]; then cp -a public web-release/public; fi
+          mkdir -p web-release/scripts
+          cp scripts/scanlead-edge.js scripts/updating.html web-release/scripts/
           cp ecosystem.config.cjs web-release/ecosystem.config.cjs
 
       - uses: actions/upload-artifact@v4
@@ -84,20 +86,26 @@ jobs:
             WEB=/home/ubuntu/apps/scanlead/web
             export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:/usr/bin:$PATH"
             command -v pm2 >/dev/null || { echo "pm2 not installed"; exit 1; }
+            mkdir -p "$WEB/scripts" /home/ubuntu/apps/scanlead/logs
 
-            # PM2 7 startOrReload can crash on .cjs; delete + start is reliable
+            # Edge stays on :3010 (updating.html while Next is down). Next listens on :3011.
+            # Delete+start web so PORT from ecosystem applies (pm2 restart keeps stale env).
+            if ! pm2 describe scanlead-edge >/dev/null 2>&1; then
+              pm2 start "$WEB/ecosystem.config.cjs" --only scanlead-edge --update-env
+            fi
             pm2 delete scanlead-web 2>/dev/null || true
-            pm2 start "$WEB/ecosystem.config.cjs" --update-env
+            pm2 start "$WEB/ecosystem.config.cjs" --only scanlead-web --update-env
             pm2 save
 
-            for i in $(seq 1 20); do
-              if curl -sf -o /dev/null http://127.0.0.1:3010/; then
-                echo "Web healthy"
+            for i in $(seq 1 25); do
+              if curl -sf -o /dev/null http://127.0.0.1:3011/ && curl -sf -o /dev/null http://127.0.0.1:3010/; then
+                echo "Web healthy (edge+upstream)"
                 exit 0
               fi
               sleep 2
             done
             echo "Health check failed"
             pm2 logs scanlead-web --lines 40 --nostream || true
+            pm2 logs scanlead-edge --lines 20 --nostream || true
             exit 1
           '
