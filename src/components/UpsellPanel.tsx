@@ -43,10 +43,10 @@ export function UpsellPanel({
 
   const body =
     reason === "guest"
-      ? "Guest is 1 full brief + 1 locked preview. Create a free account for 2 full detect-only briefs—then previews until you upgrade."
+      ? "Guest is 1 full brief + 1 locked preview. Create a free account for 2 full detect-only briefs + 1 locked preview—then upgrade for more."
       : reason === "teaser"
-        ? "Preview shows 1 finding. Sign in for 2 full Free briefs, or upgrade to Pro to unlock every finding, risk path, and report."
-        : "You’ve used your 2 full Free briefs. Further scans stay preview-only until you upgrade to Pro or buy a ₹60 deep brief.";
+        ? "Preview shows 1 finding. Sign in for 2 full Free briefs + 1 preview, or upgrade to Pro to unlock every finding, risk path, and report."
+        : "You’ve used your Free web scans (2 full + 1 preview). Upgrade to Pro or buy a ₹60 deep brief to keep scanning.";
 
   return (
     <div className="surface animate-rise">

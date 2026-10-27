@@ -117,7 +117,7 @@ function PricingBody() {
         <p className="mt-3 text-[var(--muted)] leading-relaxed">
           {isPro
             ? "You’re on Pro — branded briefs, higher limits, MCP Agent, and rescan diffs are unlocked."
-            : "Guest: 1 full brief + 1 locked preview. Sign in for 2 full Free briefs, then previews until Pro or a ₹60 deep brief."}
+            : "Guest: 1 full brief + 1 locked preview. Sign in for 2 full Free briefs + 1 locked preview, then upgrade to Pro or buy a ₹60 deep brief."}
         </p>
         <Link
           href="/#mcp"
@@ -146,7 +146,7 @@ function PricingBody() {
           <ul className="mt-6 space-y-2.5 text-sm text-[var(--muted)]">
             <li>Guest: 1 full + 1 preview</li>
             <li>After signup: 2 full Free briefs</li>
-            <li>Then preview-only until upgrade</li>
+            <li>Then 1 locked preview — next scan needs upgrade</li>
             <li>Share links · watermarked PDF</li>
             <li className="rounded-lg border border-[var(--brand)]/20 bg-[var(--brand-soft)]/50 px-3 py-2.5 text-[var(--ink)]">
               <span className="chip chip-brand mr-1.5">MCP Agent</span>

@@ -70,7 +70,7 @@ export function AuthModal({
           Continue with Google
         </button>
         <p className="mt-4 text-center text-xs leading-relaxed text-[var(--muted)]">
-          New here? Signing in unlocks 2 full Free briefs, then locked previews until you upgrade.
+          New here? Signing in unlocks 2 full Free briefs + 1 locked preview, then upgrade for more.
         </p>
       </div>
     </div>

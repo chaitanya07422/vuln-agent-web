@@ -125,7 +125,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
         title={upsell === "guest" ? "Sign in for Free briefs" : "Sign in to continue"}
         body={
           upsell === "guest"
-            ? "Guest gives 1 full brief + 1 locked preview. Sign in with Google for more Free briefs."
+            ? "Guest gives 1 full brief + 1 locked preview. Sign in with Google for 2 full Free briefs + 1 more preview."
             : "Save history, claim this brief, and keep scanning under your Free allowance."
         }
       />
