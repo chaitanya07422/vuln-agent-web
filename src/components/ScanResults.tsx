@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Finding, Scan } from "@/lib/api";
 import { createCheckout, getDiff, rescan, unlockScan } from "@/lib/api";
@@ -39,6 +40,14 @@ function Action({
   const className =
     "rounded-lg px-3 py-1.5 text-sm text-[var(--muted)] transition hover:bg-white hover:text-[var(--brand-deep)] disabled:opacity-50";
   if (href) {
+    const internal = href.startsWith("/") && !href.startsWith("//");
+    if (internal && !download) {
+      return (
+        <Link href={href} className={className}>
+          {children}
+        </Link>
+      );
+    }
     return (
       <a
         href={href}
@@ -200,6 +209,18 @@ export function ScanResults({
               </ol>
             )}
             <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/#scan"
+                className="rounded-lg bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
+              >
+                New scan
+              </Link>
+              <Link
+                href={`/?url=${encodeURIComponent(scan.url)}#scan`}
+                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)]"
+              >
+                Scan this site again
+              </Link>
               <button
                 type="button"
                 onClick={() => void onCopy()}
@@ -219,9 +240,9 @@ export function ScanResults({
                 type="button"
                 disabled={busy}
                 onClick={() => void onRescan()}
-                className="rounded-lg bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] disabled:opacity-50"
               >
-                {busy ? "Rescanning…" : user ? "Rescan" : "Sign in to rescan"}
+                {busy ? "Rescanning…" : user ? "Rescan same brief" : "Sign in to rescan"}
               </button>
             </div>
           </div>
@@ -243,6 +264,8 @@ export function ScanResults({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--line)]/80 bg-white/50 p-1">
+          <Action href="/#scan">New scan</Action>
+          <Action href={`/?url=${encodeURIComponent(scan.url)}#scan`}>Scan again</Action>
           <Action onClick={() => void onCopy()}>{copied ? "Copied" : "Copy link"}</Action>
           {!teaser && <Action href={`/v1/scans/${scan.id}/report.html`}>HTML / PDF</Action>}
           {!teaser && report && (

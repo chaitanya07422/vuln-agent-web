@@ -169,17 +169,37 @@ export default function PublicScanPage() {
           {scan?.url || "Loading…"}
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          <Link href="/" className="text-[var(--brand-deep)] hover:underline">
-            Run your own scan
-          </Link>
-          {scan && (
+          {scan ? (
             <>
-              {" · "}
               <span className="font-mono">{scan.status}</span>
               {report && scan.status === "running" ? " · draft brief ready" : null}
             </>
+          ) : (
+            "Loading…"
           )}
         </p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link
+            href="/#scan"
+            className="inline-flex min-h-11 items-center rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
+          >
+            New scan
+          </Link>
+          {scan?.url ? (
+            <Link
+              href={`/?url=${encodeURIComponent(scan.url)}#scan`}
+              className="inline-flex min-h-11 items-center rounded-xl border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--brand-deep)] hover:border-[var(--brand)]"
+            >
+              Scan this site again
+            </Link>
+          ) : null}
+          <Link
+            href="/scans"
+            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-deep)]"
+          >
+            My scans
+          </Link>
+        </div>
 
         {diffText && <p className="mt-4 text-sm text-[var(--brand-deep)]">{diffText}</p>}
 
@@ -264,6 +284,7 @@ export default function PublicScanPage() {
             <ScanResults
               scan={scan}
               report={report}
+              showNextSteps={scan.status === "done"}
               onScanUpdate={(updated) => {
                 setScan(updated);
                 if (updated.detail_level !== "teaser") {

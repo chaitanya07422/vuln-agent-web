@@ -97,7 +97,6 @@ function PricingBody() {
     }
   }
 
-  const free = plans?.plans.find((p) => p.id === "free");
   const monthly = plans?.plans.find((p) => p.id === "pro_monthly");
   const yearly = plans?.plans.find((p) => p.id === "pro_yearly");
   const deep = plans?.plans.find((p) => p.id === "deep_scan_once");

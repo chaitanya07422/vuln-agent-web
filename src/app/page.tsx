@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
-import { ScanForm } from "@/components/ScanForm";
+import { HomeScanForm } from "@/components/HomeScanForm";
 import { HomeSpecialistMock } from "@/components/HomeSpecialistMock";
 
 const CHECKS = [
@@ -60,7 +61,9 @@ export default function Home() {
           </p>
 
           <div id="scan" className="mt-10 max-w-3xl scroll-mt-24">
-            <ScanForm />
+            <Suspense fallback={<p className="font-mono text-sm text-[var(--muted)]">Loading form…</p>}>
+              <HomeScanForm />
+            </Suspense>
           </div>
         </section>
 
