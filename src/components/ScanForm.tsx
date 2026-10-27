@@ -1,43 +1,31 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ApiError,
-  claimScan,
   createScan,
   getQuota,
-  getReport,
-  getScan,
-  readClaimToken,
   rememberClaimToken,
   rememberGuestScan,
-  type Finding,
   type QuotaInfo,
-  type Scan,
 } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { AuthModal } from "@/components/AuthModal";
-import { ScanProgress } from "@/components/ScanProgress";
-import { ScanResults } from "@/components/ScanResults";
 import { UpsellPanel } from "@/components/UpsellPanel";
 
-type Phase = "idle" | "running" | "done" | "error";
+type Phase = "idle" | "starting" | "error";
 
 const TRUST = ["Detect-only", "No password sprays", "~4–6 min"];
-/** Client poll ceiling — real jobs often exceed 2–3 min (reporter LLM). */
-const POLL_MAX_SEC = 900;
 
 export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
-  const { user, login } = useAuth();
+  const router = useRouter();
+  const { user } = useAuth();
   const [url, setUrl] = useState(initialUrl);
   const [attested, setAttested] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [status, setStatus] = useState("Ready when you are.");
-  const [scan, setScan] = useState<Scan | null>(null);
-  const [report, setReport] = useState("");
   const [error, setError] = useState("");
-  const [claimMsg, setClaimMsg] = useState("");
-  const [claimBusy, setClaimBusy] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [upsell, setUpsell] = useState<"guest" | "free" | null>(null);
   const [quota, setQuota] = useState<QuotaInfo | null>(null);
@@ -59,8 +47,6 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
-    setReport("");
-    setClaimMsg("");
     setUpsell(null);
 
     const q = await refreshQuota();
@@ -76,56 +62,17 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       return;
     }
 
-    setScan(null);
-    setPhase("running");
+    setPhase("starting");
     setStatus("Starting authorized scan…");
 
     try {
       const created = await createScan(url.trim(), attested);
-      setScan(created);
       if (created.claim_token) rememberClaimToken(created.id, created.claim_token);
       rememberGuestScan({ id: created.id, url: created.url });
       void refreshQuota();
-      setStatus(`Engaging ${created.url.replace(/^https?:\/\//, "")}…`);
-
-      let final: Scan | null = null;
-      for (let i = 0; i < POLL_MAX_SEC; i++) {
-        await new Promise((r) => setTimeout(r, 1000));
-        const current = await getScan(created.id);
-        setScan(current);
-        const count = current.findings?.length ?? 0;
-        const progress = current.agents_progress || [];
-        const active = progress.find((p) => p.status === "running");
-        const cleared = progress.filter((p) => p.status === "done" || p.status === "skipped").length;
-        if (current.status === "queued") {
-          setStatus("In queue — waiting for a worker…");
-        } else if (active) {
-          setStatus(
-            `Probing · ${active.label}${count ? ` · ${count} signal${count === 1 ? "" : "s"}` : ""}`,
-          );
-        } else {
-          setStatus(
-            `Scanning · ${cleared}/${progress.length || "…"} checks${count ? ` · ${count} signals` : ""}`,
-          );
-        }
-        if (current.status === "done" || current.status === "failed") {
-          final = current;
-          break;
-        }
-      }
-
-      if (!final) {
-        // Job may still be running — hand off to the live page (no hard timeout error).
-        window.location.assign(`/scan/${created.id}`);
-        return;
-      }
-      if (final.status === "failed") throw new Error(final.error || "Scan failed");
-
-      const md = await getReport(final.id);
-      setReport(md);
-      setPhase("done");
-      setStatus("Scan complete.");
-      void refreshQuota();
+      setStatus("Opening live engagement…");
+      // Live /scan page owns progress + results (avoids homepage fake timeouts).
+      router.push(`/scan/${created.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === "GUEST_QUOTA_EXCEEDED") {
@@ -144,37 +91,10 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       }
       setPhase("error");
       setError(err instanceof Error ? err.message : String(err));
-      setStatus("Could not complete the scan.");
+      setStatus("Could not start the scan.");
     }
   }
 
-  async function onSave() {
-    if (!scan) return;
-    if (!user) {
-      login();
-      return;
-    }
-    const token = scan.claim_token || readClaimToken(scan.id);
-    if (!token) {
-      setClaimMsg("This scan is already saved or the claim token expired.");
-      return;
-    }
-    setClaimBusy(true);
-    setClaimMsg("");
-    try {
-      const updated = await claimScan(scan.id, token);
-      setScan(updated);
-      setClaimMsg("Saved to My scans.");
-      void refreshQuota();
-    } catch (err) {
-      setClaimMsg(err instanceof Error ? err.message : String(err));
-    } finally {
-      setClaimBusy(false);
-    }
-  }
-
-  const findings: Finding[] = scan?.findings ?? [];
-  const canClaim = phase === "done" && scan && !scan.owner_id;
   const remainingLabel = quota
     ? quota.mode === "guest"
       ? `${quota.remaining} of ${quota.limit} guest scans left`
@@ -219,10 +139,10 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
           />
           <button
             type="submit"
-            disabled={phase === "running" || !attested}
+            disabled={phase === "starting" || !attested}
             className="min-h-14 rounded-xl bg-[var(--brand)] px-7 text-base font-semibold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            {phase === "running" ? "Scanning…" : "Start scan"}
+            {phase === "starting" ? "Starting…" : "Start scan"}
           </button>
         </div>
 
@@ -254,7 +174,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       </form>
 
       <div className="mt-5 flex items-center gap-3 px-1 font-mono text-sm text-[var(--muted)]">
-        {phase === "running" && (
+        {phase === "starting" && (
           <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
         )}
         <span>{status}</span>
@@ -266,38 +186,10 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
         </div>
       )}
 
-      {phase === "running" && scan && (
-        <ScanProgress
-          rows={scan.agents_progress}
-          scanStatus={scan.status}
-          targetUrl={scan.url}
-          findingCount={scan.findings?.length ?? 0}
-        />
-      )}
-
       {error && (
         <p className="mt-4 animate-rise rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-[var(--danger)]">
           {error}
         </p>
-      )}
-
-      {canClaim && (
-        <div className="mt-5 flex flex-wrap items-center gap-3 animate-rise text-sm text-[var(--ink)]">
-          <span className="text-[var(--muted)]">Keep this brief in your account.</span>
-          <button
-            type="button"
-            disabled={claimBusy}
-            onClick={() => void onSave()}
-            className="rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
-          >
-            {user ? (claimBusy ? "Saving…" : "Save to My scans") : "Sign in to save"}
-          </button>
-          {claimMsg && <span className="text-[var(--muted)]">{claimMsg}</span>}
-        </div>
-      )}
-
-      {(phase === "done" || (phase === "running" && findings.length > 0)) && scan && (
-        <ScanResults scan={scan} report={report} showNextSteps={phase === "done"} />
       )}
     </div>
   );

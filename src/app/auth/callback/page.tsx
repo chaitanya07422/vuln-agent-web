@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setAccessToken } from "@/lib/session";
 import { fetchMe } from "@/lib/auth";
+import { claimGuestScans, readGuestScans } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function AuthCallbackPage() {
@@ -33,8 +34,14 @@ export default function AuthCallbackPage() {
           setMessage("Could not load your account. Try again.");
           return;
         }
-        setMessage("Signed in. Redirecting…");
-        router.replace("/scans");
+        const claimed = await claimGuestScans();
+        setMessage(
+          claimed > 0
+            ? `Signed in · claimed ${claimed} scan${claimed === 1 ? "" : "s"}. Redirecting…`
+            : "Signed in. Redirecting…",
+        );
+        const recent = readGuestScans()[0];
+        router.replace(recent?.id ? `/scan/${recent.id}` : "/scans");
       } catch {
         setMessage("Sign-in failed. Try again.");
       }

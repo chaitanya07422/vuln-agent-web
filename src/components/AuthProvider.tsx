@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const me = await fetchMe();
     setUser(me);
     if (me) {
-      void claimGuestScans();
+      await claimGuestScans();
     }
   }, []);
 
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const me = await fetchMe();
         if (!cancelled) {
           setUser(me);
-          if (me) void claimGuestScans();
+          if (me) await claimGuestScans();
         }
       } finally {
         if (!cancelled) setLoading(false);

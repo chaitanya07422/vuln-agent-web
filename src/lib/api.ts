@@ -1,4 +1,4 @@
-import { authHeaders } from "@/lib/session";
+import { authHeaders, setAccessToken } from "@/lib/session";
 
 export type Finding = {
   agent: string;
@@ -136,6 +136,16 @@ export async function getQuota(): Promise<QuotaInfo> {
     headers: authHeaders(),
     credentials: "include",
   });
+  // Stale access token → treat as guest (don't break homepage quota chips).
+  if (res.status === 401) {
+    setAccessToken(null);
+    const guest = await fetch("/v1/scans/quota", {
+      cache: "no-store",
+      credentials: "include",
+    });
+    if (!guest.ok) throw await parseError(guest);
+    return guest.json();
+  }
   if (!res.ok) throw await parseError(res);
   return res.json();
 }
@@ -288,13 +298,21 @@ export async function claimGuestScans(): Promise<number> {
   try {
     const raw = localStorage.getItem(CLAIM_KEY);
     const map = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+    // Also try tokens for recent guest scans (same map, but ensure recent ids are covered).
+    for (const recent of readGuestScans()) {
+      if (!map[recent.id]) {
+        const t = readClaimToken(recent.id);
+        if (t) map[recent.id] = t;
+      }
+    }
     for (const [id, token] of Object.entries(map)) {
       try {
         await claimScan(id, token);
         claimed += 1;
         delete map[id];
       } catch {
-        /* already owned / expired */
+        /* already owned / expired — drop dead tokens */
+        delete map[id];
       }
     }
     localStorage.setItem(CLAIM_KEY, JSON.stringify(map));
