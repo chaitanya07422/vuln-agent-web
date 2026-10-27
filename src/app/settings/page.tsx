@@ -12,6 +12,7 @@ import {
   listApiKeys,
   type ApiKeyMeta,
 } from "@/lib/api";
+import { McpSamplePrompt } from "@/components/McpSamplePrompt";
 
 const MCP_TOOLS = [
   { name: "start_scan", tip: "Start an authorized detect-only scan" },
@@ -130,7 +131,7 @@ export default function SettingsPage() {
         </div>
         <p className="mt-3 max-w-xl text-[var(--muted)] leading-relaxed">
           MCP requires a Google-signed-in account — including the Free 1 MCP scan. Keys are bound
-          to this login; Cursor authenticates with the key only (no Google popup in the agent).
+          to this login; your agent authenticates with the key only (no Google popup).
         </p>
 
         {loading ? (
@@ -175,7 +176,7 @@ export default function SettingsPage() {
                 <div className="max-w-lg">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="chip chip-brand">MCP Agent</span>
-                    <span className="chip chip-muted">Cursor · Claude Code · CLI</span>
+                    <span className="chip chip-muted">Any MCP client · CLI</span>
                   </div>
                   <h2 className="mt-3 display text-2xl sm:text-3xl">ScanLead in your agent</h2>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
@@ -234,7 +235,7 @@ export default function SettingsPage() {
                   <p className="mt-2 max-w-md text-sm text-[var(--muted)]">
                     Create a key, paste it as{" "}
                     <code className="font-mono text-xs text-[var(--ink)]">SCANLEAD_API_KEY</code> in
-                    Cursor. Shown once at creation — revoke anytime.
+                    your agent MCP config. Shown once at creation — revoke anytime.
                   </p>
                 </div>
                 <p className="font-mono text-xs text-[var(--muted)]">
@@ -298,7 +299,7 @@ export default function SettingsPage() {
                   <li className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--bg)]/50 px-4 py-8 text-center">
                     <p className="text-sm font-medium text-[var(--ink)]">No keys yet</p>
                     <p className="mt-1 text-sm text-[var(--muted)]">
-                      Create one above to unlock the MCP Agent in Cursor.
+                      Create one above to unlock the MCP Agent.
                     </p>
                   </li>
                 ) : (
@@ -335,11 +336,13 @@ export default function SettingsPage() {
               </ul>
             </section>
 
-            {/* Cursor config */}
+            <McpSamplePrompt />
+
+            {/* MCP config */}
             <section className="surface p-5 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="kicker">Cursor</p>
+                  <p className="kicker">Config</p>
                   <h2 className="mt-1 display text-xl">mcp.json</h2>
                   <p className="mt-2 text-sm text-[var(--muted)]">
                     Drop into <code className="font-mono text-xs">~/.cursor/mcp.json</code> (or

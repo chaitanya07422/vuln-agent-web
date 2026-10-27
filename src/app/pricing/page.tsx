@@ -120,7 +120,7 @@ function PricingBody() {
           className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[var(--brand)]/30 bg-[var(--brand-soft)]/80 px-4 py-2.5 text-sm font-semibold text-[var(--brand-deep)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
         >
           <span className="scan-pulse inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
-          MCP Agent — scan from Cursor
+          MCP Agent — scan from your agent
           <span aria-hidden className="text-[var(--muted)]">
             →
           </span>
@@ -146,7 +146,7 @@ function PricingBody() {
             <li>Share links · watermarked PDF</li>
             <li className="rounded-lg border border-[var(--brand)]/20 bg-[var(--brand-soft)]/50 px-3 py-2.5 text-[var(--ink)]">
               <span className="chip chip-brand mr-1.5">MCP Agent</span>
-              1 Free Cursor scan
+              1 Free agent scan
               <span className="mt-1 block text-xs text-[var(--muted)]">
                 Google login required · API key in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
@@ -203,7 +203,7 @@ function PricingBody() {
             <li>Higher rate limits</li>
             <li className="rounded-lg border border-[var(--brand)]/25 bg-[var(--brand-soft)]/60 px-3 py-2.5 text-[var(--ink)]">
               <span className="chip chip-brand mr-1.5">MCP Agent</span>
-              Web + Cursor share Pro quota
+              Web + agent share Pro quota
               <span className="mt-1 block text-xs text-[var(--muted)]">
                 API keys in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">

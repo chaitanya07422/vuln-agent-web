@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { HomeScanForm } from "@/components/HomeScanForm";
 import { HomeSpecialistMock } from "@/components/HomeSpecialistMock";
+import { McpSamplePrompt } from "@/components/McpSamplePrompt";
 
 const CHECKS = [
   { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
@@ -93,26 +94,13 @@ export default function Home() {
                 </span>
               </div>
               <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl tracking-tight text-white sm:text-4xl md:text-5xl">
-                Run ScanLead from Cursor Agent
+                Run ScanLead from your agent
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-[#b7c9bf] sm:text-lg">
-                Even the Free MCP scan needs a Google sign-in. Your API key is tied to that account —
-                Cursor never logs into Google; it only sends the key, and we map it to you.
+                Sign in with Google, create an API key in Settings, connect{" "}
+                <code className="font-mono text-sm text-white">scanlead-mcp</code>, then paste a
+                prompt like the sample. Free includes 1 MCP scan after login.
               </p>
-              <ol className="mt-5 max-w-xl space-y-2 text-sm text-[#c5d9ce]">
-                <li className="flex gap-2">
-                  <span className="font-mono text-[10px] text-[var(--accent)]">1</span>
-                  Sign in with Google on ScanLead
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-mono text-[10px] text-[var(--accent)]">2</span>
-                  Create an API key in Settings (stored on your account)
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-mono text-[10px] text-[var(--accent)]">3</span>
-                  Put it in Cursor as <code className="font-mono text-xs text-white">SCANLEAD_API_KEY</code>
-                </li>
-              </ol>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/settings"
@@ -128,35 +116,7 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="rounded-2xl border border-white/15 bg-[var(--ink)]/40 p-5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
-                How the key is checked
-              </p>
-              <ul className="mt-4 space-y-3 text-sm text-[#b7c9bf]">
-                <li className="border-b border-white/10 pb-3">
-                  <span className="font-semibold text-[#9fe0c4]">Google once</span>
-                  <span className="mt-0.5 block">
-                    OAuth creates your ScanLead user (google_id + email).
-                  </span>
-                </li>
-                <li className="border-b border-white/10 pb-3">
-                  <span className="font-semibold text-[#9fe0c4]">Key on that user</span>
-                  <span className="mt-0.5 block">
-                    We store only a hash of <code className="font-mono text-xs text-white">sl_live_…</code> on
-                    your account — never the raw secret again.
-                  </span>
-                </li>
-                <li>
-                  <span className="font-semibold text-[#9fe0c4]">MCP calls</span>
-                  <span className="mt-0.5 block">
-                    Bearer key → hash lookup → your Google-linked user → quotas &amp; My scans.
-                  </span>
-                </li>
-              </ul>
-              <p className="mt-5 font-mono text-[11px] text-[#8aa398]">
-                start_scan · get_scan · get_brief · get_quota
-              </p>
-            </div>
+            <McpSamplePrompt dark />
           </div>
         </section>
 
