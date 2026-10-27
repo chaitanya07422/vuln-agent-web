@@ -49,7 +49,7 @@ export default function Home() {
 
       <main>
         {/* Hero — brand + one line + ScanForm */}
-        <section className="mx-auto flex min-h-[calc(100vh-4.5rem)] w-full max-w-6xl flex-col justify-center px-5 pb-20 pt-8 sm:px-8">
+        <section className="mx-auto flex w-full max-w-6xl flex-col justify-center px-5 pb-12 pt-8 sm:px-8 sm:pb-14 sm:pt-10">
           <p className="animate-rise kicker text-xs tracking-[0.18em]">
             Authorized external checks
           </p>
@@ -59,21 +59,104 @@ export default function Home() {
           <p className="animate-rise-delay mt-5 max-w-xl text-lg leading-relaxed text-[var(--muted)] sm:text-xl">
             Authorized detect-only scans. A company brief—not a letter grade.
           </p>
-          <Link
-            href="/#mcp"
-            className="animate-rise-delay-2 mt-5 inline-flex items-center gap-2 self-start rounded-full border border-[var(--brand)]/30 bg-white/70 px-3.5 py-1.5 text-sm font-medium text-[var(--brand-deep)] shadow-sm backdrop-blur-sm transition hover:border-[var(--brand)] hover:bg-white"
-          >
-            <span className="scan-pulse inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-            New · MCP Agent for Cursor
-            <span aria-hidden className="text-[var(--muted)]">
-              →
-            </span>
-          </Link>
 
-          <div id="scan" className="mt-10 max-w-3xl scroll-mt-28">
+          <div id="scan" className="mt-8 max-w-3xl scroll-mt-28 sm:mt-10">
             <Suspense fallback={<p className="font-mono text-sm text-[var(--muted)]">Loading form…</p>}>
               <HomeScanForm />
             </Suspense>
+          </div>
+        </section>
+
+        {/* MCP Agent — top highlight */}
+        <section
+          id="mcp"
+          className="scroll-mt-28 relative overflow-hidden border-t border-[var(--brand)]/25 bg-[var(--brand-deep)] text-[#e8f0eb]"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background: `
+                radial-gradient(700px 380px at 8% 20%, rgba(26,143,106,0.45) 0%, transparent 55%),
+                radial-gradient(560px 320px at 96% 80%, rgba(228,243,236,0.12) 0%, transparent 50%)
+              `,
+            }}
+          />
+          <div className="relative mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:py-16">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-[var(--accent)]/25 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#b8f0d4]">
+                  New
+                </span>
+                <span className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#d5ebe1]">
+                  MCP Agent
+                </span>
+              </div>
+              <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl tracking-tight text-white sm:text-4xl md:text-5xl">
+                Run ScanLead from Cursor Agent
+              </h2>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#b7c9bf] sm:text-lg">
+                Even the Free MCP scan needs a Google sign-in. Your API key is tied to that account —
+                Cursor never logs into Google; it only sends the key, and we map it to you.
+              </p>
+              <ol className="mt-5 max-w-xl space-y-2 text-sm text-[#c5d9ce]">
+                <li className="flex gap-2">
+                  <span className="font-mono text-[10px] text-[var(--accent)]">1</span>
+                  Sign in with Google on ScanLead
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-mono text-[10px] text-[var(--accent)]">2</span>
+                  Create an API key in Settings (stored on your account)
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-mono text-[10px] text-[var(--accent)]">3</span>
+                  Put it in Cursor as <code className="font-mono text-xs text-white">SCANLEAD_API_KEY</code>
+                </li>
+              </ol>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/settings"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[var(--brand-deep)] transition hover:bg-[#e8f0eb]"
+                >
+                  Sign in · get API key
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Free · 1 MCP after login
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-[var(--ink)]/40 p-5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
+                How the key is checked
+              </p>
+              <ul className="mt-4 space-y-3 text-sm text-[#b7c9bf]">
+                <li className="border-b border-white/10 pb-3">
+                  <span className="font-semibold text-[#9fe0c4]">Google once</span>
+                  <span className="mt-0.5 block">
+                    OAuth creates your ScanLead user (google_id + email).
+                  </span>
+                </li>
+                <li className="border-b border-white/10 pb-3">
+                  <span className="font-semibold text-[#9fe0c4]">Key on that user</span>
+                  <span className="mt-0.5 block">
+                    We store only a hash of <code className="font-mono text-xs text-white">sl_live_…</code> on
+                    your account — never the raw secret again.
+                  </span>
+                </li>
+                <li>
+                  <span className="font-semibold text-[#9fe0c4]">MCP calls</span>
+                  <span className="mt-0.5 block">
+                    Bearer key → hash lookup → your Google-linked user → quotas &amp; My scans.
+                  </span>
+                </li>
+              </ul>
+              <p className="mt-5 font-mono text-[11px] text-[#8aa398]">
+                start_scan · get_scan · get_brief · get_quota
+              </p>
+            </div>
           </div>
         </section>
 
@@ -267,82 +350,6 @@ export default function Home() {
                   <p className="mt-2 leading-relaxed text-[var(--muted)]">{item.b}</p>
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* MCP Agent — highlighted feature */}
-        <section
-          id="mcp"
-          className="scroll-mt-28 relative overflow-hidden border-t border-[var(--brand)]/25 bg-[var(--brand-deep)] text-[#e8f0eb]"
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-40"
-            style={{
-              background: `
-                radial-gradient(700px 380px at 8% 20%, rgba(26,143,106,0.45) 0%, transparent 55%),
-                radial-gradient(560px 320px at 96% 80%, rgba(228,243,236,0.12) 0%, transparent 50%)
-              `,
-            }}
-          />
-          <div className="relative mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:py-20">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-[var(--accent)]/25 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#b8f0d4]">
-                  New
-                </span>
-                <span className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#d5ebe1]">
-                  MCP Agent
-                </span>
-              </div>
-              <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl tracking-tight text-white sm:text-4xl md:text-5xl">
-                Run ScanLead from Cursor Agent
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#b7c9bf] sm:text-lg">
-                Create an API key once. Ask your agent to start a scan, poll status, and pull the
-                company brief — results land in My scans under your login.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/settings"
-                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[var(--brand-deep)] transition hover:bg-[#e8f0eb]"
-                >
-                  Get API key
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Free · 1 MCP scan
-                </Link>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-white/15 bg-[var(--ink)]/40 p-5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
-                Agent tools
-              </p>
-              <ul className="mt-4 space-y-3">
-                {[
-                  ["start_scan", "Authorized detect-only scan"],
-                  ["get_scan", "Live status & findings"],
-                  ["get_brief", "Markdown company brief"],
-                  ["get_quota", "Web + MCP remaining"],
-                ].map(([name, tip]) => (
-                  <li
-                    key={name}
-                    className="flex items-start gap-3 border-b border-white/10 pb-3 last:border-0 last:pb-0"
-                  >
-                    <span className="mt-0.5 font-mono text-xs font-semibold text-[#9fe0c4]">
-                      {name}
-                    </span>
-                    <span className="text-sm text-[#b7c9bf]">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-5 font-mono text-[11px] text-[#8aa398]">
-                scanlead-mcp · SCANLEAD_API_KEY
-              </p>
             </div>
           </div>
         </section>

@@ -129,8 +129,8 @@ export default function SettingsPage() {
           {user && <PlanBadge plan={user.plan} />}
         </div>
         <p className="mt-3 max-w-xl text-[var(--muted)] leading-relaxed">
-          Connect Cursor Agent (and other MCP clients) with a personal API key. Scans run under
-          this login and show up in My scans.
+          MCP requires a Google-signed-in account — including the Free 1 MCP scan. Keys are bound
+          to this login; Cursor authenticates with the key only (no Google popup in the agent).
         </p>
 
         {loading ? (
@@ -139,12 +139,25 @@ export default function SettingsPage() {
           <div className="surface mt-10 overflow-hidden">
             <div className="border-b border-[var(--brand)]/15 bg-[var(--brand-soft)]/60 px-5 py-4 sm:px-6">
               <span className="chip chip-brand">New · MCP Agent</span>
-              <h2 className="mt-2 display text-2xl">Scan from Cursor</h2>
+              <h2 className="mt-2 display text-2xl">Google sign-in required</h2>
               <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                Sign in once, create a key, then ask Cursor to scan a URL you own.
+                Sign in with Google, then create an API key. That key maps every Cursor scan back to
+                this account (quotas, My scans, ownership attestation).
               </p>
             </div>
-            <div className="p-5 sm:p-6">
+            <div className="space-y-4 p-5 sm:p-6">
+              <ol className="space-y-2 text-sm text-[var(--muted)]">
+                <li>
+                  <span className="font-semibold text-[var(--ink)]">1.</span> Continue with Google
+                </li>
+                <li>
+                  <span className="font-semibold text-[var(--ink)]">2.</span> Create <code className="font-mono text-xs">sl_live_…</code> key
+                </li>
+                <li>
+                  <span className="font-semibold text-[var(--ink)]">3.</span> Paste into Cursor{" "}
+                  <code className="font-mono text-xs">mcp.json</code>
+                </li>
+              </ol>
               <button type="button" onClick={login} className="btn-primary">
                 Continue with Google
               </button>
@@ -166,9 +179,12 @@ export default function SettingsPage() {
                   </div>
                   <h2 className="mt-3 display text-2xl sm:text-3xl">ScanLead in your agent</h2>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                    Tools like <code className="font-mono text-xs text-[var(--ink)]">start_scan</code>{" "}
-                    and <code className="font-mono text-xs text-[var(--ink)]">get_brief</code> call
-                    your account. Results save here — same ownership attestation as the website.
+                    Signed in as{" "}
+                    <span className="font-medium text-[var(--ink)]">
+                      {user.email || user.name || "your Google account"}
+                    </span>
+                    . Keys you create here authenticate MCP as this user — we look up the key hash
+                    and attach scans to this Google-linked account.
                   </p>
                 </div>
                 <div className="rounded-xl border border-[var(--brand)]/20 bg-white/80 px-4 py-3 backdrop-blur-sm">
@@ -183,7 +199,7 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm font-semibold text-[var(--ink)]">
                       {mcpFreeLimit} Free MCP scan
                       <span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">
-                        Separate from Free web scans
+                        Login required · separate from web Free
                       </span>
                     </p>
                   )}

@@ -148,7 +148,7 @@ function PricingBody() {
               <span className="chip chip-brand mr-1.5">MCP Agent</span>
               1 Free Cursor scan
               <span className="mt-1 block text-xs text-[var(--muted)]">
-                API key in{" "}
+                Google login required · API key in{" "}
                 <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
                   Settings
                 </Link>
