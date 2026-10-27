@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { createCheckout } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
+import { UpgradeInterestModal } from "@/components/UpgradeInterestModal";
 
 export function UpsellPanel({
   reason = "free",
@@ -11,27 +11,14 @@ export function UpsellPanel({
   reason?: "free" | "guest" | "teaser";
 }) {
   const { user, login } = useAuth();
-  const [busy, setBusy] = useState<"pro" | "deep" | null>(null);
-  const [err, setErr] = useState("");
+  const [interest, setInterest] = useState<"pro" | "deep" | null>(null);
 
-  async function buy(kind: "pro" | "deep") {
+  function buy(kind: "pro" | "deep") {
     if (!user) {
       login();
       return;
     }
-    setBusy(kind);
-    setErr("");
-    try {
-      const order = await createCheckout(
-        kind === "deep" ? "once" : "month",
-        kind === "deep" ? "deep_scan_once" : "pro_monthly",
-      );
-      if (!order.checkout_url) throw new Error("No checkout URL");
-      window.location.href = order.checkout_url;
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-      setBusy(null);
-    }
+    setInterest(kind);
   }
 
   const title =
@@ -79,11 +66,10 @@ export function UpsellPanel({
           </ul>
           <button
             type="button"
-            disabled={busy !== null}
-            onClick={() => void buy("pro")}
+            onClick={() => buy("pro")}
             className="btn-primary mt-5 w-full"
           >
-            {busy === "pro" ? "Redirecting…" : user ? "Upgrade to Pro" : "Sign in to upgrade"}
+            {user ? "Upgrade to Pro" : "Sign in to upgrade"}
           </button>
         </div>
         <div className="px-5 py-5 sm:px-6">
@@ -98,20 +84,23 @@ export function UpsellPanel({
           </ul>
           <button
             type="button"
-            disabled={busy !== null}
-            onClick={() => void buy("deep")}
+            onClick={() => buy("deep")}
             className="btn-secondary mt-5 w-full"
           >
-            {busy === "deep" ? "Redirecting…" : user ? "Buy ₹60 credit" : "Sign in to buy"}
+            {user ? "Buy ₹60 credit" : "Sign in to buy"}
           </button>
         </div>
       </div>
-      {err && <p className="border-t border-[var(--line)] px-5 py-3 text-sm text-[var(--danger)]">{err}</p>}
       <div className="border-t border-[var(--line)]/80 px-5 py-3 text-center sm:px-6">
         <Link href="/pricing" className="text-sm font-medium text-[var(--brand-deep)] hover:underline">
           Compare plans →
         </Link>
       </div>
+      <UpgradeInterestModal
+        open={interest !== null}
+        intent={interest ?? "pro"}
+        onClose={() => setInterest(null)}
+      />
     </div>
   );
 }

@@ -4,10 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Finding, Scan } from "@/lib/api";
-import { createCheckout, getDiff, rescan, unlockScan } from "@/lib/api";
+import { getDiff, rescan, unlockScan } from "@/lib/api";
 import { buildDisplaySummary } from "@/lib/checks";
 import { useAuth } from "@/components/AuthProvider";
 import { RetryBanner } from "@/components/RetryBanner";
+import { UpgradeInterestModal } from "@/components/UpgradeInterestModal";
 
 const ORDER = ["critical", "high", "medium", "low", "info"] as const;
 
@@ -98,6 +99,7 @@ export function ScanResults({
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [diffText, setDiffText] = useState("");
   const [actionError, setActionError] = useState("");
+  const [interest, setInterest] = useState<"pro" | "deep" | null>(null);
 
   const teaser = scan.detail_level === "teaser";
   const findings = [...(scan.findings || [])]
@@ -154,15 +156,13 @@ export function ScanResults({
       return;
     }
     const credits = user.deep_credits ?? 0;
+    if (credits <= 0) {
+      setInterest("deep");
+      return;
+    }
     setUnlockBusy(true);
     setActionError("");
     try {
-      if (credits <= 0) {
-        const order = await createCheckout("once", "deep_scan_once");
-        if (!order.checkout_url) throw new Error("No checkout URL");
-        window.location.href = order.checkout_url;
-        return;
-      }
       const updated = await unlockScan(scan.id);
       onScanUpdate?.(updated);
       await refresh();
@@ -174,21 +174,12 @@ export function ScanResults({
     }
   }
 
-  async function onUpgradePro() {
+  function onUpgradePro() {
     if (!user) {
       login();
       return;
     }
-    setUnlockBusy(true);
-    setActionError("");
-    try {
-      const order = await createCheckout("month", "pro_monthly");
-      if (!order.checkout_url) throw new Error("No checkout URL");
-      window.location.href = order.checkout_url;
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : String(err));
-      setUnlockBusy(false);
-    }
+    setInterest("pro");
   }
 
   if (teaser) {
@@ -315,7 +306,7 @@ export function ScanResults({
               <button
                 type="button"
                 disabled={unlockBusy}
-                onClick={() => void onUpgradePro()}
+                onClick={() => onUpgradePro()}
                 className="btn-secondary"
               >
                 {user ? "Upgrade to Pro" : "Sign in for Pro"}
@@ -336,6 +327,11 @@ export function ScanResults({
             </p>
           </div>
         </div>
+        <UpgradeInterestModal
+          open={interest !== null}
+          intent={interest ?? "pro"}
+          onClose={() => setInterest(null)}
+        />
       </section>
     );
   }

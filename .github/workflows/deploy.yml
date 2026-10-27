@@ -33,6 +33,7 @@ jobs:
           # Same PostHog project as portfolio (set in repo secrets)
           NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
           NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          NEXT_PUBLIC_UPGRADE_FORM_URL: ${{ secrets.NEXT_PUBLIC_UPGRADE_FORM_URL }}
 
       - name: Pack standalone release
         run: |

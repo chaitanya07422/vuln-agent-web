@@ -6,9 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { PlanBadge } from "@/components/PlanBadge";
 import { useAuth } from "@/components/AuthProvider";
-import { createCheckout, getPlans, syncBilling } from "@/lib/api";
+import { getPlans, syncBilling } from "@/lib/api";
 import { RetryBanner } from "@/components/RetryBanner";
 import { trackEvent } from "@/lib/analytics";
+import { UpgradeInterestModal } from "@/components/UpgradeInterestModal";
 
 type PlansPayload = {
   currency: string;
@@ -28,9 +29,9 @@ function PricingBody() {
   const { user, login, refresh } = useAuth();
   const params = useSearchParams();
   const [plans, setPlans] = useState<PlansPayload | null>(null);
-  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [interest, setInterest] = useState<"pro" | "deep" | null>(null);
 
   const isPro = user?.plan === "pro";
   const [plansTick, setPlansTick] = useState(0);
@@ -76,34 +77,18 @@ function PricingBody() {
     };
   }, [params, user, refresh]);
 
-  async function upgrade(interval: "month" | "year" | "once", planId?: string) {
-    trackEvent("checkout_click", { interval, plan_id: planId || interval, signed_in: Boolean(user) });
+  function requestUpgrade(intent: "pro" | "deep", interval: "month" | "year" | "once") {
+    trackEvent("checkout_click", { interval, plan_id: intent, signed_in: Boolean(user), mode: "interest" });
     if (!user) {
       login();
       return;
     }
-    setBusy(true);
-    setMsg("");
-    try {
-      const order = await createCheckout(interval, planId);
-      if (!order.checkout_url) {
-        setMsg("No checkout URL returned.");
-        setBusy(false);
-        return;
-      }
-      trackEvent("checkout_redirect", { interval, plan_id: planId || interval });
-      window.location.href = order.checkout_url;
-    } catch (err) {
-      trackEvent("checkout_failed", { interval });
-      setMsg(err instanceof Error ? err.message : String(err));
-      setBusy(false);
-    }
+    setInterest(intent);
   }
 
   const monthly = plans?.plans.find((p) => p.id === "pro_monthly");
   const yearly = plans?.plans.find((p) => p.id === "pro_yearly");
   const deep = plans?.plans.find((p) => p.id === "deep_scan_once");
-  const ready = Boolean(plans?.payments_ready ?? plans?.razorpay_ready);
   const deepCredits = user?.deep_credits ?? 0;
 
   return (
@@ -178,14 +163,8 @@ function PricingBody() {
           </ul>
           <button
             type="button"
-            disabled={busy || confirming || isPro || (Boolean(user) && !ready)}
-            onClick={() => {
-              if (!user) {
-                login();
-                return;
-              }
-              void upgrade("once", "deep_scan_once");
-            }}
+            disabled={confirming || isPro}
+            onClick={() => requestUpgrade("deep", "once")}
             className="btn-secondary mt-8 w-full"
           >
             {isPro ? "Included in Pro" : user ? "Buy ₹60 credit" : "Sign in to buy"}
@@ -247,31 +226,25 @@ function PricingBody() {
             <div className="mt-8 flex flex-col gap-2">
               <button
                 type="button"
-                disabled={busy || confirming || (Boolean(user) && !ready)}
-                onClick={() => {
-                  if (!user) {
-                    login();
-                    return;
-                  }
-                  void upgrade("month");
-                }}
+                disabled={confirming}
+                onClick={() => requestUpgrade("pro", "month")}
                 className="btn-primary w-full"
               >
                 {user ? "Upgrade monthly" : "Sign in to upgrade"}
               </button>
               <button
                 type="button"
-                disabled={busy || confirming || !user || !ready}
-                onClick={() => void upgrade("year")}
+                disabled={confirming || !user}
+                onClick={() => requestUpgrade("pro", "year")}
                 className="btn-secondary w-full"
               >
                 Yearly · save more
               </button>
             </div>
           )}
-          {plans && !ready && !isPro && (
-            <p className="mt-4 text-sm text-[var(--warn)]">
-              Checkout is not configured on this environment yet.
+          {!isPro && (
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              Self-serve checkout isn’t live yet — we’ll take your interest and follow up.
             </p>
           )}
         </div>
@@ -287,7 +260,7 @@ function PricingBody() {
         ) : (
           <RetryBanner
             message={msg}
-            busy={busy || confirming}
+            busy={confirming}
             retryLabel={params.get("paid") === "1" ? "Retry sync" : "Retry load"}
             onRetry={() => {
               if (params.get("paid") === "1") {
@@ -299,6 +272,12 @@ function PricingBody() {
             }}
           />
         ))}
+
+      <UpgradeInterestModal
+        open={interest !== null}
+        intent={interest ?? "pro"}
+        onClose={() => setInterest(null)}
+      />
     </>
   );
 }
