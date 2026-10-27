@@ -302,40 +302,37 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Footer CTA */}
-        <section className="border-t border-[var(--line)] py-16">
-          <div className="mx-auto max-w-6xl px-5 text-center sm:px-8">
-            <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)]">
-              Paste a URL you own.
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-[var(--muted)]">
-              Start a detect-only pass and get a brief your company can use.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/#scan" className="btn-primary min-h-12 px-7 text-base">
-                Start scan
-              </Link>
-              <Link href="/settings" className="btn-secondary min-h-12 px-7 text-base">
-                MCP Agents
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-[var(--line)] bg-white/80 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <span className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]">
-            ScanLead
-          </span>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link href="/pricing" className="hover:text-[var(--ink)]">
-              Pricing
-            </Link>
-            <Link href="/scans" className="hover:text-[var(--ink)]">
-              My scans
-            </Link>
-            <p>Authorized targets only</p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 text-sm text-[var(--muted)] sm:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <span className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]">
+              ScanLead
+            </span>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <Link href="/pricing" className="hover:text-[var(--ink)]">
+                Pricing
+              </Link>
+              <Link href="/scans" className="hover:text-[var(--ink)]">
+                My scans
+              </Link>
+              <Link href="/settings" className="hover:text-[var(--ink)]">
+                MCP Agent
+              </Link>
+              <p>Authorized targets only</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 border-t border-[var(--line)]/80 pt-4 sm:flex-row sm:items-center sm:gap-6">
+            <a
+              href="mailto:kadavakolluchaitanya@gmail.com"
+              className="hover:text-[var(--ink)]"
+            >
+              kadavakolluchaitanya@gmail.com
+            </a>
+            <a href="tel:+918125859799" className="hover:text-[var(--ink)]">
+              +91 8125859799
+            </a>
           </div>
         </div>
       </footer>
