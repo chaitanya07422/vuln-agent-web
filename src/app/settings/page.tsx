@@ -184,8 +184,8 @@ export default function SettingsPage() {
                     <span className="font-medium text-[var(--ink)]">
                       {user.email || user.name || "your Google account"}
                     </span>
-                    . Keys you create here authenticate MCP as this user — we look up the key hash
-                    and attach scans to this Google-linked account.
+                    . Keys you create here run MCP scans as this account — results land in My
+                    scans.
                   </p>
                 </div>
                 <div className="rounded-xl border border-[var(--brand)]/20 bg-white/80 px-4 py-3 backdrop-blur-sm">
