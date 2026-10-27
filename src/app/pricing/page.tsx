@@ -176,7 +176,7 @@ function PricingBody() {
           </p>
           <p className="mt-1 text-sm text-[var(--muted)]">or ₹{yearly?.price ?? 7999}/yr</p>
           <ul className="mt-6 space-y-2.5 text-sm text-[var(--muted)]">
-            <li>Up to {monthly?.history ?? 500} saved scans</li>
+            <li>Up to {monthly?.history ?? 20} saved scans</li>
             <li>Full branded PDF / HTML</li>
             <li>Rescan + finding diff</li>
             <li>Higher rate limits</li>
