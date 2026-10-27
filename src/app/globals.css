@@ -107,6 +107,16 @@ button:active:not(:disabled) {
   opacity: 0.5;
 }
 
+/* Brand outline on a brand button looks like a doubled/misaligned frame */
+.btn-primary:focus-visible {
+  outline: 2px solid var(--brand-deep);
+  outline-offset: 2px;
+}
+
+a.btn-primary:focus-visible {
+  outline-color: var(--brand-deep);
+}
+
 .btn-secondary {
   display: inline-flex;
   min-height: 2.75rem;
