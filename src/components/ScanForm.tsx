@@ -23,7 +23,9 @@ import { UpsellPanel } from "@/components/UpsellPanel";
 
 type Phase = "idle" | "running" | "done" | "error";
 
-const TRUST = ["Detect-only", "No password sprays", "~2–3 min"];
+const TRUST = ["Detect-only", "No password sprays", "~4–6 min"];
+/** Client poll ceiling — real jobs often exceed 2–3 min (reporter LLM). */
+const POLL_MAX_SEC = 900;
 
 export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
   const { user, login } = useAuth();
@@ -87,7 +89,7 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       setStatus(`Engaging ${created.url.replace(/^https?:\/\//, "")}…`);
 
       let final: Scan | null = null;
-      for (let i = 0; i < 120; i++) {
+      for (let i = 0; i < POLL_MAX_SEC; i++) {
         await new Promise((r) => setTimeout(r, 1000));
         const current = await getScan(created.id);
         setScan(current);
@@ -112,7 +114,11 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
         }
       }
 
-      if (!final) throw new Error("Scan timed out. Try again in a minute.");
+      if (!final) {
+        // Job may still be running — hand off to the live page (no hard timeout error).
+        window.location.assign(`/scan/${created.id}`);
+        return;
+      }
       if (final.status === "failed") throw new Error(final.error || "Scan failed");
 
       const md = await getReport(final.id);
