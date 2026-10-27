@@ -2,10 +2,9 @@
 
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { UPGRADE_FORM_URL } from "@/lib/forms";
 
-/** Set NEXT_PUBLIC_UPGRADE_FORM_URL to your Google Form / Doc interest link. */
-export const UPGRADE_FORM_URL =
-  process.env.NEXT_PUBLIC_UPGRADE_FORM_URL?.trim() || "";
+export { UPGRADE_FORM_URL };
 
 export function UpgradeInterestModal({
   open,

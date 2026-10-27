@@ -5,6 +5,7 @@ import { HomeScanForm } from "@/components/HomeScanForm";
 import { HomeSpecialistMock } from "@/components/HomeSpecialistMock";
 import { McpSamplePrompt } from "@/components/McpSamplePrompt";
 import { McpHomeCtas } from "@/components/McpHomeCtas";
+import { UPGRADE_FORM_URL } from "@/lib/forms";
 
 const CHECKS = [
   { title: "Recon & headers", body: "Reachability, stack fingerprint, TLS and security header hygiene." },
@@ -322,6 +323,16 @@ export default function Home() {
             <Link href="/settings" className="hover:text-[var(--ink)]">
               MCP Agents
             </Link>
+            {UPGRADE_FORM_URL ? (
+              <a
+                href={UPGRADE_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[var(--ink)]"
+              >
+                Feedback
+              </a>
+            ) : null}
             <span>Authorized targets only</span>
           </div>
         </div>

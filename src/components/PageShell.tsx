@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { UPGRADE_FORM_URL } from "@/components/UpgradeInterestModal";
+import { trackEvent } from "@/lib/analytics";
 
 export function PageShell({
   children,
@@ -59,6 +61,17 @@ export function PageShell({
             <Link href="/settings" className="hover:text-[var(--ink)]">
               MCP Agents
             </Link>
+            {UPGRADE_FORM_URL ? (
+              <a
+                href={UPGRADE_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent("feedback_click", { source: "footer" })}
+                className="hover:text-[var(--ink)]"
+              >
+                Feedback
+              </a>
+            ) : null}
             <span>Authorized targets only</span>
           </div>
         </div>

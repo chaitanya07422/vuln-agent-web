@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { PlanBadge } from "@/components/PlanBadge";
 import { useScanLiveLock } from "@/components/ScanLiveLock";
+import { UPGRADE_FORM_URL } from "@/components/UpgradeInterestModal";
 import { trackEvent } from "@/lib/analytics";
 
 export function SiteHeader() {
@@ -58,6 +59,17 @@ export function SiteHeader() {
               <Link href="/pricing" className={`hidden sm:inline ${linkClass("/pricing")}`}>
                 Pricing
               </Link>
+              {UPGRADE_FORM_URL ? (
+                <a
+                  href={UPGRADE_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent("feedback_click", { source: "header" })}
+                  className="shrink-0 text-sm text-[var(--muted)] transition hover:text-[var(--ink)]"
+                >
+                  Feedback
+                </a>
+              ) : null}
               <Link
                 href="/settings"
                 onClick={() => trackEvent("mcp_nav_click", { source: "header" })}
