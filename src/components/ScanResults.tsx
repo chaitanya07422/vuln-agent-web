@@ -6,6 +6,7 @@ import type { Finding, Scan } from "@/lib/api";
 import { getDiff, rescan } from "@/lib/api";
 import { buildDisplaySummary } from "@/lib/checks";
 import { useAuth } from "@/components/AuthProvider";
+import { UpsellPanel } from "@/components/UpsellPanel";
 
 const ORDER = ["critical", "high", "medium", "low", "info"] as const;
 
@@ -72,6 +73,7 @@ export function ScanResults({
   const [diffText, setDiffText] = useState("");
   const [actionError, setActionError] = useState("");
 
+  const teaser = scan.detail_level === "teaser";
   const findings = [...(scan.findings || [])]
     .filter((f) => f.severity !== "info" && f.agent !== "reporter")
     .sort(
@@ -80,9 +82,11 @@ export function ScanResults({
         ORDER.indexOf(b.severity as (typeof ORDER)[number]),
     );
   const actionable = findings.filter((f) => ["critical", "high", "medium"].includes(f.severity));
-  const topFixes = actionable.slice(0, 2);
+  const topFixes = teaser ? [] : actionable.slice(0, 2);
   const summary = buildDisplaySummary(scan);
   const allClear = Boolean(summary.all_clear);
+  const hidden = scan.hidden_findings ?? 0;
+  const totalSignals = scan.findings_total ?? findings.length + hidden;
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}/scan/${scan.id}` : `/scan/${scan.id}`;
 
@@ -120,7 +124,13 @@ export function ScanResults({
 
   return (
     <section className="mt-12 animate-rise">
-      {showNextSteps && scan.status === "done" && (
+      {teaser && (
+        <div className="mb-8">
+          <UpsellPanel reason={user ? "teaser" : "teaser"} />
+        </div>
+      )}
+
+      {showNextSteps && scan.status === "done" && !teaser && (
         <div className="mb-8 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--brand-soft)]/35">
           <div className="px-5 py-4 sm:px-6">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--brand)]">
@@ -171,29 +181,31 @@ export function ScanResults({
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)]">
-            Results
+            {teaser ? "Preview" : "Results"}
           </h2>
           <p className="mt-1 text-[var(--muted)]">
-            {allClear
-              ? "No issues in this detect-only pass"
-              : `${actionable.length} priority · ${findings.length} listed`}{" "}
+            {teaser
+              ? `${totalSignals} signal${totalSignals === 1 ? "" : "s"} · showing 1 · ${hidden} locked`
+              : allClear
+                ? "No issues in this detect-only pass"
+                : `${actionable.length} priority · ${findings.length} listed`}{" "}
             · {scan.status}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--line)]/80 bg-white/50 p-1">
           <Action onClick={() => void onCopy()}>{copied ? "Copied" : "Copy link"}</Action>
-          <Action href={`/v1/scans/${scan.id}/report.html`}>HTML / PDF</Action>
-          {report && (
+          {!teaser && <Action href={`/v1/scans/${scan.id}/report.html`}>HTML / PDF</Action>}
+          {!teaser && report && (
             <Action href={`/v1/scans/${scan.id}/report.md`} download>
               Markdown
             </Action>
           )}
-          {scan.status === "done" && (
+          {!teaser && scan.status === "done" && (
             <Action href={`/v1/scans/${scan.id}/audit.json`} download>
               Audit
             </Action>
           )}
-          {scan.status === "done" && (
+          {!teaser && scan.status === "done" && (
             <Action disabled={busy} onClick={() => void onRescan()}>
               {busy ? "Rescanning…" : user ? "Rescan" : "Sign in to rescan"}
             </Action>
@@ -205,36 +217,42 @@ export function ScanResults({
         <p className="mb-4 text-sm text-[var(--muted)]">{actionError || diffText}</p>
       )}
 
-      <div className="mb-8">
-        <h3 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
-          What we checked
-        </h3>
-        {summary.stack && (
-          <p className="mt-1 text-xs text-[var(--muted)]">Detected stack: {summary.stack}</p>
-        )}
-        <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">{summary.headline}</p>
+      {!teaser && (
+        <div className="mb-8">
+          <h3 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
+            What we checked
+          </h3>
+          {summary.stack && (
+            <p className="mt-1 text-xs text-[var(--muted)]">Detected stack: {summary.stack}</p>
+          )}
+          <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">{summary.headline}</p>
 
-        <ul className="mt-5">
-          {(summary.agents || []).map((row) => (
-            <li
-              key={row.agent}
-              className="grid gap-1 border-t border-[var(--line)]/80 py-3 text-sm sm:grid-cols-[6.5rem_11rem_1fr] sm:items-baseline sm:gap-3"
-            >
-              <span
-                className={`text-xs font-semibold uppercase tracking-wide ${
-                  row.status === "attention" ? "text-[var(--warn)]" : "text-[var(--brand-deep)]"
-                }`}
+          <ul className="mt-5">
+            {(summary.agents || []).map((row) => (
+              <li
+                key={row.agent}
+                className="grid gap-1 border-t border-[var(--line)]/80 py-3 text-sm sm:grid-cols-[6.5rem_11rem_1fr] sm:items-baseline sm:gap-3"
               >
-                {row.status === "attention" ? "Attention" : "Clear"}
-              </span>
-              <span className="font-medium text-[var(--ink)]">{row.label}</span>
-              <span className="text-[var(--muted)]">{row.note}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+                <span
+                  className={`text-xs font-semibold uppercase tracking-wide ${
+                    row.status === "attention" ? "text-[var(--warn)]" : "text-[var(--brand-deep)]"
+                  }`}
+                >
+                  {row.status === "attention" ? "Attention" : "Clear"}
+                </span>
+                <span className="font-medium text-[var(--ink)]">{row.label}</span>
+                <span className="text-[var(--muted)]">{row.note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      {scan.risk_path && !allClear && (
+      {teaser && summary.headline && (
+        <p className="mb-8 text-sm leading-relaxed text-[var(--muted)]">{summary.headline}</p>
+      )}
+
+      {scan.risk_path && !allClear && !teaser && (
         <div className="mb-8">
           <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
             How this could be abused
@@ -266,7 +284,7 @@ export function ScanResults({
       {findings.length > 0 && (
         <>
           <h3 className="mb-4 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
-            Findings that need a look
+            {teaser ? "One finding unlocked" : "Findings that need a look"}
           </h3>
           <ul className="flex flex-col gap-6">
             {findings.map((f: Finding, i: number) => (
@@ -280,7 +298,7 @@ export function ScanResults({
                   <span className="font-mono text-xs text-[var(--muted)]">{f.agent}</span>
                 </div>
                 <h3 className="mt-2 text-lg font-semibold text-[var(--ink)]">{f.title}</h3>
-                {f.evidence_url && (
+                {!teaser && f.evidence_url && (
                   <a
                     href={f.evidence_url}
                     target="_blank"
@@ -290,7 +308,7 @@ export function ScanResults({
                     {f.evidence_url}
                   </a>
                 )}
-                {f.evidence_snippet && (
+                {!teaser && f.evidence_snippet && (
                   <pre className="mt-3 overflow-x-auto rounded-lg bg-white/70 p-3 font-mono text-xs text-[var(--muted)] whitespace-pre-wrap">
                     {f.evidence_snippet}
                   </pre>
@@ -298,10 +316,10 @@ export function ScanResults({
                 {f.explanation && (
                   <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">
                     <span className="font-semibold text-[var(--brand-deep)]">Why it matters:</span>{" "}
-                    {f.explanation}
+                    {teaser ? `${f.explanation.slice(0, 140)}${f.explanation.length > 140 ? "…" : ""}` : f.explanation}
                   </p>
                 )}
-                {f.fix && (
+                {!teaser && f.fix && (
                   <p className="mt-2 text-sm leading-relaxed text-[var(--ink)]">
                     <span className="font-semibold">Fix:</span> {f.fix}
                   </p>
@@ -309,10 +327,20 @@ export function ScanResults({
               </li>
             ))}
           </ul>
+          {teaser && hidden > 0 && (
+            <div className="mt-6 rounded-xl border border-dashed border-[var(--line)] bg-white/60 px-4 py-5 text-center">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--brand)]">
+                {hidden} more finding{hidden === 1 ? "" : "s"} locked
+              </p>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                Evidence, fixes, risk path, and the full brief stay hidden on preview scans.
+              </p>
+            </div>
+          )}
         </>
       )}
 
-      {report && (
+      {report && !teaser && (
         <details className="mt-10 group">
           <summary className="cursor-pointer text-sm font-semibold text-[var(--brand-deep)] transition group-open:text-[var(--ink)]">
             Full markdown brief

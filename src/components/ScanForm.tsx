@@ -54,11 +54,11 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       if (q.mode === "guest") {
         setUpsell("guest");
         setAuthOpen(true);
-        setStatus("Guest scans used — sign in for 5 more.");
+        setStatus("Guest scans used — sign in for 2 full Free briefs.");
         return;
       }
       setUpsell("free");
-      setStatus("Free scans used — upgrade to continue.");
+      setStatus("Free scan limit reached — upgrade for full briefs.");
       return;
     }
 
@@ -79,13 +79,13 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
           setUpsell("guest");
           setAuthOpen(true);
           setPhase("idle");
-          setStatus("Guest scans used — sign in for 5 more.");
+          setStatus("Guest scans used — sign in for 2 full Free briefs.");
           return;
         }
         if (err.code === "FREE_QUOTA_EXCEEDED") {
           setUpsell("free");
           setPhase("idle");
-          setStatus("Free scans used — upgrade to continue.");
+          setStatus("Free scan limit reached — upgrade for full briefs.");
           return;
         }
       }
@@ -97,10 +97,10 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
 
   const remainingLabel = quota
     ? quota.mode === "guest"
-      ? `${quota.remaining} of ${quota.limit} guest scans left`
+      ? `${quota.remaining} of ${quota.limit} guest · next ${quota.next_detail || "full"}`
       : quota.mode === "pro"
-        ? "Pro · unlimited for your plan"
-        : `${quota.remaining} of ${quota.limit} Free scans left`
+        ? "Pro · full briefs"
+        : `${quota.full_remaining ?? 0} full Free left · next ${quota.next_detail || "teaser"}`
     : null;
 
   return (
@@ -108,10 +108,10 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        title={upsell === "guest" ? "Sign in for 5 Free scans" : "Sign in to continue"}
+        title={upsell === "guest" ? "Sign in for 2 full Free briefs" : "Sign in to continue"}
         body={
           upsell === "guest"
-            ? "Your 2 guest trials are done. Sign in with Google for 5 detect-only scans on Free—then upgrade when you need more."
+            ? "Guest gives 1 full brief + 1 locked preview. Sign in with Google for 2 more full Free briefs—then previews until you upgrade."
             : "Save history, claim this brief, and keep scanning under your Free allowance."
         }
       />

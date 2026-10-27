@@ -53,6 +53,9 @@ export type Scan = {
   owner_id?: string | null;
   claim_token?: string | null;
   parent_scan_id?: string | null;
+  detail_level?: "full" | "teaser" | string;
+  hidden_findings?: number;
+  findings_total?: number;
 };
 
 export type ScanListItem = {
@@ -74,6 +77,10 @@ export type QuotaInfo = {
   deep_credits?: number;
   guest_lifetime?: number;
   free_limit?: number;
+  full_limit?: number;
+  full_used?: number;
+  full_remaining?: number;
+  next_detail?: "full" | "teaser" | string;
 };
 
 export type QuotaErrorCode = "GUEST_QUOTA_EXCEEDED" | "FREE_QUOTA_EXCEEDED" | string;
