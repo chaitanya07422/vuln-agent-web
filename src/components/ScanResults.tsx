@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Finding, Scan } from "@/lib/api";
-import { getDiff, rescan } from "@/lib/api";
+import { createCheckout, getDiff, rescan, unlockScan } from "@/lib/api";
 import { buildDisplaySummary } from "@/lib/checks";
 import { useAuth } from "@/components/AuthProvider";
 import { UpsellPanel } from "@/components/UpsellPanel";
@@ -61,15 +61,18 @@ export function ScanResults({
   scan,
   report,
   showNextSteps = false,
+  onScanUpdate,
 }: {
   scan: Scan;
   report: string;
   showNextSteps?: boolean;
+  onScanUpdate?: (scan: Scan) => void;
 }) {
-  const { user, login } = useAuth();
+  const { user, login, refresh } = useAuth();
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [unlockBusy, setUnlockBusy] = useState(false);
   const [diffText, setDiffText] = useState("");
   const [actionError, setActionError] = useState("");
 
@@ -122,11 +125,57 @@ export function ScanResults({
     }
   }
 
+  async function onUnlock() {
+    if (!user) {
+      login();
+      return;
+    }
+    const credits = user.deep_credits ?? 0;
+    setUnlockBusy(true);
+    setActionError("");
+    try {
+      if (credits <= 0) {
+        const order = await createCheckout("once", "deep_scan_once");
+        if (!order.checkout_url) throw new Error("No checkout URL");
+        window.location.href = order.checkout_url;
+        return;
+      }
+      const updated = await unlockScan(scan.id);
+      onScanUpdate?.(updated);
+      await refresh();
+      router.refresh();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setUnlockBusy(false);
+    }
+  }
+
   return (
     <section className="mt-12 animate-rise">
       {teaser && (
-        <div className="mb-8">
-          <UpsellPanel reason={user ? "teaser" : "teaser"} />
+        <div className="mb-8 space-y-4">
+          <UpsellPanel reason="teaser" />
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-white/70 px-4 py-3 text-sm">
+            <span className="text-[var(--muted)]">
+              Or unlock this brief with a ₹60 deep credit
+              {user?.deep_credits ? ` (${user.deep_credits} left)` : ""}.
+            </span>
+            <button
+              type="button"
+              disabled={unlockBusy}
+              onClick={() => void onUnlock()}
+              className="rounded-lg bg-[var(--brand)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+            >
+              {unlockBusy
+                ? "Unlocking…"
+                : user
+                  ? (user.deep_credits ?? 0) > 0
+                    ? "Unlock with credit"
+                    : "Buy ₹60 unlock"
+                  : "Sign in to unlock"}
+            </button>
+          </div>
         </div>
       )}
 

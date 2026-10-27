@@ -44,10 +44,18 @@ function PricingBody() {
       setConfirming(true);
       setMsg("");
       try {
-        await syncBilling();
+        // Polar webhooks can lag a few seconds — retry sync.
+        let plan = user.plan;
+        for (let i = 0; i < 6; i++) {
+          const synced = await syncBilling();
+          plan = synced.plan || plan;
+          if (plan === "pro" || (synced.deep_credits ?? 0) > (user.deep_credits ?? 0)) break;
+          await new Promise((r) => setTimeout(r, 1500));
+        }
         await refresh();
         if (!cancelled) {
           setConfirming(false);
+          setMsg(plan === "pro" ? "Pro unlocked — full briefs are on." : "Payment synced.");
           window.history.replaceState(null, "", "/pricing");
         }
       } catch (err) {

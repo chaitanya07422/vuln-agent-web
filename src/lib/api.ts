@@ -24,6 +24,9 @@ export type AgentProgress = {
   status: "pending" | "running" | "done" | "skipped" | "failed" | string;
   started_at?: string | null;
   finished_at?: string | null;
+  /** Live step from the worker (URL/path/tool), not catalog copy. */
+  detail?: string | null;
+  step_at?: string | null;
 };
 
 export type ScanSummary = {
@@ -198,6 +201,17 @@ export async function claimScan(id: string, claimToken: string): Promise<Scan> {
   return res.json();
 }
 
+/** Spend one deep-brief credit to unlock a teaser scan to full detail. */
+export async function unlockScan(id: string): Promise<Scan> {
+  const res = await fetch(`/v1/scans/${id}/unlock`, {
+    method: "POST",
+    headers: authHeaders(),
+    credentials: "include",
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
 export async function rescan(id: string): Promise<Scan> {
   const res = await fetch(`/v1/scans/${id}/rescan`, {
     method: "POST",
@@ -236,7 +250,12 @@ export async function createCheckout(
   return res.json();
 }
 
-export async function syncBilling() {
+export async function syncBilling(): Promise<{
+  plan?: string;
+  deep_credits?: number;
+  history_limit?: number;
+  user?: { plan?: string; deep_credits?: number };
+}> {
   const res = await fetch("/v1/billing/sync", {
     method: "POST",
     headers: authHeaders(),

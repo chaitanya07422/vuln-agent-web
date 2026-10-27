@@ -163,7 +163,16 @@ export default function PublicScanPage() {
         )}
 
         {scan && (scan.status === "done" || (scan.findings && scan.findings.length > 0) || report) && (
-          <ScanResults scan={scan} report={report} />
+          <ScanResults
+            scan={scan}
+            report={report}
+            onScanUpdate={(updated) => {
+              setScan(updated);
+              if (updated.detail_level !== "teaser") {
+                void tryLoadReport(updated.id);
+              }
+            }}
+          />
         )}
       </div>
     </PageShell>
