@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
@@ -16,6 +16,9 @@ import {
   type Scan,
 } from "@/lib/api";
 
+const POLL_MS = 1200;
+const MAX_TRANSIENT = 12; // ~15–40s of reconnect attempts before hard stop
+
 export default function PublicScanPage() {
   const params = useParams();
   const id = String(params.id || "");
@@ -24,9 +27,12 @@ export default function PublicScanPage() {
   const [report, setReport] = useState("");
   const [diffText, setDiffText] = useState("");
   const [error, setError] = useState("");
+  const [softError, setSoftError] = useState("");
   const [claimMsg, setClaimMsg] = useState("");
   const [claimBusy, setClaimBusy] = useState(false);
   const [hasClaimToken, setHasClaimToken] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
+  const failsRef = useRef(0);
 
   const tryLoadReport = useCallback(async (scanId: string) => {
     try {
@@ -41,11 +47,21 @@ export default function PublicScanPage() {
     if (!id) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    failsRef.current = 0;
+
+    function schedule(ms: number) {
+      timer = setTimeout(() => {
+        void load();
+      }, ms);
+    }
 
     async function load() {
       try {
         const current = await getScan(id);
         if (cancelled) return;
+        failsRef.current = 0;
+        setSoftError("");
+        setError("");
         setScan(current);
         setHasClaimToken(Boolean(current.claim_token || readClaimToken(current.id)));
         // Draft brief may exist while still running (template before LLM polish).
@@ -69,10 +85,23 @@ export default function PublicScanPage() {
         } else if (current.status === "failed") {
           setError(current.error || "Scan failed");
         } else {
-          timer = setTimeout(load, 1200);
+          schedule(POLL_MS);
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        if (cancelled) return;
+        failsRef.current += 1;
+        const msg = err instanceof Error ? err.message : String(err);
+        // Keep last good progress on screen; retry transient network/API blips.
+        if (failsRef.current < MAX_TRANSIENT) {
+          setSoftError(
+            `Connection hiccup — retrying (${failsRef.current}/${MAX_TRANSIENT})…`,
+          );
+          const backoff = Math.min(POLL_MS * failsRef.current, 5000);
+          schedule(backoff);
+        } else {
+          setSoftError("");
+          setError(msg || "Request failed");
+        }
       }
     }
 
@@ -81,7 +110,7 @@ export default function PublicScanPage() {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [id, tryLoadReport]);
+  }, [id, tryLoadReport, retryTick]);
 
   async function onClaim() {
     if (!scan) return;
@@ -108,6 +137,7 @@ export default function PublicScanPage() {
   }
 
   const canClaim = Boolean(scan && !scan.owner_id && hasClaimToken);
+  const stillLive = scan && (scan.status === "queued" || scan.status === "running");
 
   return (
     <PageShell>
@@ -132,10 +162,31 @@ export default function PublicScanPage() {
         </p>
 
         {diffText && <p className="mt-4 text-sm text-[var(--brand-deep)]">{diffText}</p>}
-        {error && (
-          <p className="mt-6 rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-[var(--danger)]">
-            {error}
+
+        {softError && stillLive && (
+          <p className="mt-6 rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-[var(--warn)]">
+            {softError}
           </p>
+        )}
+
+        {error && (
+          <div className="mt-6 rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-[var(--danger)]">
+            <p>{error}</p>
+            {stillLive || !scan ? (
+              <button
+                type="button"
+                className="mt-3 rounded-lg bg-[var(--brand)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
+                onClick={() => {
+                  setError("");
+                  setSoftError("");
+                  failsRef.current = 0;
+                  setRetryTick((n) => n + 1);
+                }}
+              >
+                Retry connection
+              </button>
+            ) : null}
+          </div>
         )}
 
         {scan && (scan.status === "queued" || scan.status === "running") && (
