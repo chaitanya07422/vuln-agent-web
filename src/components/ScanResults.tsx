@@ -411,11 +411,6 @@ export function ScanResults({
             </Action>
           )}
           {scan.status === "done" && (
-            <Action href={`/v1/scans/${scan.id}/audit.json`} download>
-              Audit
-            </Action>
-          )}
-          {scan.status === "done" && (
             <Action disabled={busy} onClick={() => void onRescan()}>
               {busy ? "Rescanning…" : user ? "Rescan" : "Sign in to rescan"}
             </Action>
