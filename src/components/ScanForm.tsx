@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { AuthModal } from "@/components/AuthModal";
+import { RetryBanner } from "@/components/RetryBanner";
 import { UpsellPanel } from "@/components/UpsellPanel";
 
 type Phase = "idle" | "starting" | "error";
@@ -187,9 +188,15 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
       )}
 
       {error && (
-        <p className="mt-4 animate-rise rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-[var(--danger)]">
-          {error}
-        </p>
+        <RetryBanner
+          message={error}
+          busy={phase === "starting"}
+          retryLabel="Retry start"
+          onRetry={() => {
+            const form = document.getElementById("target-url")?.closest("form");
+            form?.requestSubmit();
+          }}
+        />
       )}
     </div>
   );

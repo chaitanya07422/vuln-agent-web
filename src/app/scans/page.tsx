@@ -6,6 +6,7 @@ import { PageShell } from "@/components/PageShell";
 import { useAuth } from "@/components/AuthProvider";
 import { PlanBadge } from "@/components/PlanBadge";
 import { listMyScans, readGuestScans, type ScanListItem } from "@/lib/api";
+import { RetryBanner } from "@/components/RetryBanner";
 
 function hostOf(url: string) {
   try {
@@ -65,11 +66,14 @@ export default function MyScansPage() {
     setGuest(readGuestScans());
   }, []);
 
+  const [reloadTick, setReloadTick] = useState(0);
+
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
       try {
+        setError("");
         const data = await listMyScans();
         if (!cancelled) {
           setScans(data.scans || []);
@@ -83,7 +87,7 @@ export default function MyScansPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, reloadTick]);
 
   const usagePct = limit > 0 ? Math.min(100, Math.round((scans.length / limit) * 100)) : 0;
   const nearLimit = plan === "free" && scans.length >= Math.max(1, limit - 2);
@@ -148,7 +152,11 @@ export default function MyScansPage() {
           <GuestRecent guest={guest} />
         </div>
       ) : error ? (
-        <p className="mt-14 text-sm text-[var(--danger)]">{error}</p>
+        <RetryBanner
+          message={error}
+          retryLabel="Retry load"
+          onRetry={() => setReloadTick((n) => n + 1)}
+        />
       ) : scans.length === 0 ? (
         <div className="animate-rise-delay mt-14 max-w-md">
           <p className="text-[var(--ink)]">No saved scans yet.</p>

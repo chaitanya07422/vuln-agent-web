@@ -6,6 +6,7 @@ import type { Finding, Scan } from "@/lib/api";
 import { createCheckout, getDiff, rescan, unlockScan } from "@/lib/api";
 import { buildDisplaySummary } from "@/lib/checks";
 import { useAuth } from "@/components/AuthProvider";
+import { RetryBanner } from "@/components/RetryBanner";
 import { UpsellPanel } from "@/components/UpsellPanel";
 
 const ORDER = ["critical", "high", "medium", "low", "info"] as const;
@@ -262,8 +263,21 @@ export function ScanResults({
         </div>
       </div>
 
-      {(actionError || diffText) && (
-        <p className="mb-4 text-sm text-[var(--muted)]">{actionError || diffText}</p>
+      {diffText && !actionError && (
+        <p className="mb-4 text-sm text-[var(--muted)]">{diffText}</p>
+      )}
+      {actionError && (
+        <RetryBanner
+          message={actionError}
+          busy={busy || unlockBusy}
+          retryLabel="Retry action"
+          onRetry={() => {
+            setActionError("");
+            // Prefer unlock retry when teaser; otherwise rescan.
+            if (teaser) void onUnlock();
+            else void onRescan();
+          }}
+        />
       )}
 
       {!teaser && (

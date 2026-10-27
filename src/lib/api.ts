@@ -130,6 +130,7 @@ async function parseError(res: Response): Promise<Error> {
 }
 
 export async function createScan(url: string, attested: boolean): Promise<Scan> {
+  // Do not auto-retry POST — a timed-out success would double-create / double-charge quota.
   const res = await fetch("/v1/scans", {
     method: "POST",
     headers: authHeaders({ "content-type": "application/json" }),
@@ -160,8 +161,35 @@ export async function getQuota(): Promise<QuotaInfo> {
   return res.json();
 }
 
+/** Fetch with 1–2 automatic retries for flaky network / brief API restarts. */
+async function fetchWithRetry(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  attempts = 3,
+): Promise<Response> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(input, init);
+      // Retry transient gateway / overload responses.
+      if ([502, 503, 504].includes(res.status) && i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+        continue;
+      }
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error("Request failed");
+}
+
 export async function getScan(id: string): Promise<Scan> {
-  const res = await fetch(`/v1/scans/${id}`, {
+  const res = await fetchWithRetry(`/v1/scans/${id}`, {
     cache: "no-store",
     headers: authHeaders(),
     credentials: "include",
@@ -171,7 +199,7 @@ export async function getScan(id: string): Promise<Scan> {
 }
 
 export async function getReport(id: string): Promise<string> {
-  const res = await fetch(`/v1/scans/${id}/report.md`, {
+  const res = await fetchWithRetry(`/v1/scans/${id}/report.md`, {
     cache: "no-store",
     headers: authHeaders(),
     credentials: "include",
@@ -181,7 +209,7 @@ export async function getReport(id: string): Promise<string> {
 }
 
 export async function listMyScans(): Promise<{ scans: ScanListItem[]; limit: number; plan: string }> {
-  const res = await fetch("/v1/scans", {
+  const res = await fetchWithRetry("/v1/scans", {
     cache: "no-store",
     headers: authHeaders(),
     credentials: "include",
@@ -214,6 +242,17 @@ export async function unlockScan(id: string): Promise<Scan> {
 
 export async function rescan(id: string): Promise<Scan> {
   const res = await fetch(`/v1/scans/${id}/rescan`, {
+    method: "POST",
+    headers: authHeaders(),
+    credentials: "include",
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+/** Re-queue the same failed scan (no new quota). */
+export async function retryScan(id: string): Promise<Scan> {
+  const res = await fetch(`/v1/scans/${id}/retry`, {
     method: "POST",
     headers: authHeaders(),
     credentials: "include",

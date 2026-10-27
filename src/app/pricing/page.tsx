@@ -6,6 +6,7 @@ import { PageShell } from "@/components/PageShell";
 import { PlanBadge } from "@/components/PlanBadge";
 import { useAuth } from "@/components/AuthProvider";
 import { createCheckout, getPlans, syncBilling } from "@/lib/api";
+import { RetryBanner } from "@/components/RetryBanner";
 
 type PlansPayload = {
   currency: string;
@@ -31,11 +32,16 @@ function PricingBody() {
 
   const isPro = user?.plan === "pro";
 
+  const [plansTick, setPlansTick] = useState(0);
+
   useEffect(() => {
     void getPlans()
-      .then(setPlans)
+      .then((p) => {
+        setPlans(p);
+        setMsg("");
+      })
       .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
-  }, []);
+  }, [plansTick]);
 
   useEffect(() => {
     if (params.get("paid") !== "1" || !user) return;
@@ -213,7 +219,26 @@ function PricingBody() {
         </div>
       </div>
 
-      {msg && <p className="mt-8 text-sm text-[var(--muted)]">{msg}</p>}
+      {msg &&
+        (msg.toLowerCase().includes("unlock") ||
+        msg.toLowerCase().includes("synced") ||
+        msg.toLowerCase().includes("confirming") ? (
+          <p className="mt-8 text-sm text-[var(--brand-deep)]">{msg}</p>
+        ) : (
+          <RetryBanner
+            message={msg}
+            busy={busy || confirming}
+            retryLabel={params.get("paid") === "1" ? "Retry sync" : "Retry load"}
+            onRetry={() => {
+              if (params.get("paid") === "1") {
+                window.location.href = "/pricing?paid=1";
+                return;
+              }
+              setMsg("");
+              setPlansTick((n) => n + 1);
+            }}
+          />
+        ))}
     </>
   );
 }

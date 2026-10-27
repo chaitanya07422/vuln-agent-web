@@ -6,6 +6,7 @@ import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { ScanProgress } from "@/components/ScanProgress";
 import { ScanResults } from "@/components/ScanResults";
+import { RetryBanner } from "@/components/RetryBanner";
 import { useAuth } from "@/components/AuthProvider";
 import {
   claimScan,
@@ -13,11 +14,12 @@ import {
   getReport,
   getScan,
   readClaimToken,
+  retryScan,
   type Scan,
 } from "@/lib/api";
 
 const POLL_MS = 1200;
-const MAX_TRANSIENT = 12; // ~15–40s of reconnect attempts before hard stop
+const MAX_TRANSIENT = 12;
 
 export default function PublicScanPage() {
   const params = useParams();
@@ -30,6 +32,7 @@ export default function PublicScanPage() {
   const [softError, setSoftError] = useState("");
   const [claimMsg, setClaimMsg] = useState("");
   const [claimBusy, setClaimBusy] = useState(false);
+  const [retryBusy, setRetryBusy] = useState(false);
   const [hasClaimToken, setHasClaimToken] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
   const failsRef = useRef(0);
@@ -61,10 +64,10 @@ export default function PublicScanPage() {
         if (cancelled) return;
         failsRef.current = 0;
         setSoftError("");
-        setError("");
+        // Don't clear a real scan-failed message until status changes.
+        if (current.status !== "failed") setError("");
         setScan(current);
         setHasClaimToken(Boolean(current.claim_token || readClaimToken(current.id)));
-        // Draft brief may exist while still running (template before LLM polish).
         if (current.status === "running" || current.status === "done") {
           void tryLoadReport(id);
         }
@@ -91,13 +94,11 @@ export default function PublicScanPage() {
         if (cancelled) return;
         failsRef.current += 1;
         const msg = err instanceof Error ? err.message : String(err);
-        // Keep last good progress on screen; retry transient network/API blips.
         if (failsRef.current < MAX_TRANSIENT) {
           setSoftError(
             `Connection hiccup — retrying (${failsRef.current}/${MAX_TRANSIENT})…`,
           );
-          const backoff = Math.min(POLL_MS * failsRef.current, 5000);
-          schedule(backoff);
+          schedule(Math.min(POLL_MS * failsRef.current, 5000));
         } else {
           setSoftError("");
           setError(msg || "Request failed");
@@ -136,8 +137,27 @@ export default function PublicScanPage() {
     }
   }
 
+  async function onRetryJob() {
+    if (!scan) return;
+    setRetryBusy(true);
+    setError("");
+    try {
+      const updated = await retryScan(scan.id);
+      setScan(updated);
+      setReport("");
+      failsRef.current = 0;
+      setRetryTick((n) => n + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRetryBusy(false);
+    }
+  }
+
   const canClaim = Boolean(scan && !scan.owner_id && hasClaimToken);
-  const stillLive = scan && (scan.status === "queued" || scan.status === "running");
+  const stillLive = Boolean(scan && (scan.status === "queued" || scan.status === "running"));
+  const scanFailed = scan?.status === "failed";
+  const pollFailed = Boolean(error) && !scanFailed;
 
   return (
     <PageShell>
@@ -164,29 +184,38 @@ export default function PublicScanPage() {
         {diffText && <p className="mt-4 text-sm text-[var(--brand-deep)]">{diffText}</p>}
 
         {softError && stillLive && (
-          <p className="mt-6 rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-[var(--warn)]">
-            {softError}
-          </p>
+          <RetryBanner
+            tone="warn"
+            message={softError}
+            retryLabel="Retry now"
+            onRetry={() => {
+              failsRef.current = 0;
+              setSoftError("");
+              setRetryTick((n) => n + 1);
+            }}
+          />
         )}
 
-        {error && (
-          <div className="mt-6 rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-[var(--danger)]">
-            <p>{error}</p>
-            {stillLive || !scan ? (
-              <button
-                type="button"
-                className="mt-3 rounded-lg bg-[var(--brand)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
-                onClick={() => {
-                  setError("");
-                  setSoftError("");
-                  failsRef.current = 0;
-                  setRetryTick((n) => n + 1);
-                }}
-              >
-                Retry connection
-              </button>
-            ) : null}
-          </div>
+        {pollFailed && (
+          <RetryBanner
+            message={error}
+            retryLabel="Retry connection"
+            onRetry={() => {
+              setError("");
+              setSoftError("");
+              failsRef.current = 0;
+              setRetryTick((n) => n + 1);
+            }}
+          />
+        )}
+
+        {scanFailed && (
+          <RetryBanner
+            message={error || "Scan failed on the server."}
+            busy={retryBusy}
+            retryLabel="Retry scan"
+            onRetry={() => void onRetryJob()}
+          />
         )}
 
         {scan && (scan.status === "queued" || scan.status === "running") && (
@@ -209,22 +238,40 @@ export default function PublicScanPage() {
             >
               {user ? (claimBusy ? "Saving…" : "Save to My scans") : "Sign in to save"}
             </button>
-            {claimMsg && <span className="text-[var(--muted)]">{claimMsg}</span>}
+            {claimMsg && (
+              <span className="text-[var(--muted)]">
+                {claimMsg}
+                {claimMsg.toLowerCase().includes("fail") || claimMsg.toLowerCase().includes("error") ? (
+                  <>
+                    {" · "}
+                    <button
+                      type="button"
+                      className="text-[var(--brand-deep)] underline"
+                      onClick={() => void onClaim()}
+                    >
+                      Retry save
+                    </button>
+                  </>
+                ) : null}
+              </span>
+            )}
           </div>
         )}
 
-        {scan && (scan.status === "done" || (scan.findings && scan.findings.length > 0) || report) && (
-          <ScanResults
-            scan={scan}
-            report={report}
-            onScanUpdate={(updated) => {
-              setScan(updated);
-              if (updated.detail_level !== "teaser") {
-                void tryLoadReport(updated.id);
-              }
-            }}
-          />
-        )}
+        {scan &&
+          !scanFailed &&
+          (scan.status === "done" || (scan.findings && scan.findings.length > 0) || report) && (
+            <ScanResults
+              scan={scan}
+              report={report}
+              onScanUpdate={(updated) => {
+                setScan(updated);
+                if (updated.detail_level !== "teaser") {
+                  void tryLoadReport(updated.id);
+                }
+              }}
+            />
+          )}
       </div>
     </PageShell>
   );
