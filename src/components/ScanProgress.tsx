@@ -90,10 +90,8 @@ export function ScanProgress({
       <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bg-elevated)] shadow-[0_1px_0_rgba(19,32,26,0.04)]">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--line)]/80 px-4 py-3.5 sm:px-5">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brand)]">
-              Live engagement
-            </p>
-            <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
+            <p className="kicker tracking-[0.18em]">Live engagement</p>
+            <h3 className="mt-1 display text-xl">
               {scanStatus === "queued" ? "Queued" : "Specialists on target"}
             </h3>
             <p className="mt-0.5 font-mono text-xs text-[var(--muted)]">

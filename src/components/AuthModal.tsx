@@ -53,12 +53,10 @@ export function AuthModal({
         >
           Esc
         </button>
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--brand)]">
-          Account
-        </p>
+        <p className="kicker text-[11px]">Account</p>
         <h2
           id="auth-modal-title"
-          className="mt-2 font-[family-name:var(--font-display)] text-[1.85rem] leading-tight tracking-tight text-[var(--ink)]"
+          className="mt-2 display text-[1.85rem] leading-tight"
         >
           {title}
         </h2>
@@ -72,7 +70,7 @@ export function AuthModal({
           Continue with Google
         </button>
         <p className="mt-4 text-center text-xs leading-relaxed text-[var(--muted)]">
-          New here? Signing in creates your Free account with 5 scans.
+          New here? Signing in unlocks 2 full Free briefs, then locked previews until you upgrade.
         </p>
       </div>
     </div>

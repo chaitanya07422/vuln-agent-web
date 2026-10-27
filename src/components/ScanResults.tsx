@@ -8,9 +8,22 @@ import { createCheckout, getDiff, rescan, unlockScan } from "@/lib/api";
 import { buildDisplaySummary } from "@/lib/checks";
 import { useAuth } from "@/components/AuthProvider";
 import { RetryBanner } from "@/components/RetryBanner";
-import { UpsellPanel } from "@/components/UpsellPanel";
 
 const ORDER = ["critical", "high", "medium", "low", "info"] as const;
+
+const PRO_UNLOCKS = [
+  "Every finding with evidence",
+  "How this could be abused",
+  "Fix steps per finding",
+  "HTML / PDF company brief",
+] as const;
+
+const BLUR_TITLES = [
+  "Sensitive path exposed without auth",
+  "Misconfigured cookie or session flag",
+  "Public stack fingerprint leak",
+  "TLS or header hygiene gap",
+];
 
 function sevClass(sev: string) {
   switch (sev) {
@@ -95,7 +108,7 @@ export function ScanResults({
         ORDER.indexOf(b.severity as (typeof ORDER)[number]),
     );
   const actionable = findings.filter((f) => ["critical", "high", "medium"].includes(f.severity));
-  const topFixes = teaser ? [] : actionable.slice(0, 2);
+  const topFixes = actionable.slice(0, 2);
   const summary = buildDisplaySummary(scan);
   const allClear = Boolean(summary.all_clear);
   const hidden = scan.hidden_findings ?? 0;
@@ -161,41 +174,179 @@ export function ScanResults({
     }
   }
 
-  return (
-    <section className="mt-12 animate-rise">
-      {teaser && (
-        <div className="mb-8 space-y-4">
-          <UpsellPanel reason="teaser" />
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-white/70 px-4 py-3 text-sm">
-            <span className="text-[var(--muted)]">
-              Or unlock this brief with a ₹60 deep credit
-              {user?.deep_credits ? ` (${user.deep_credits} left)` : ""}.
-            </span>
-            <button
-              type="button"
-              disabled={unlockBusy}
-              onClick={() => void onUnlock()}
-              className="rounded-lg bg-[var(--brand)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
-            >
-              {unlockBusy
-                ? "Unlocking…"
-                : user
-                  ? (user.deep_credits ?? 0) > 0
-                    ? "Unlock with credit"
-                    : "Buy ₹60 unlock"
-                  : "Sign in to unlock"}
-            </button>
+  async function onUpgradePro() {
+    if (!user) {
+      login();
+      return;
+    }
+    setUnlockBusy(true);
+    setActionError("");
+    try {
+      const order = await createCheckout("month", "pro_monthly");
+      if (!order.checkout_url) throw new Error("No checkout URL");
+      window.location.href = order.checkout_url;
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : String(err));
+      setUnlockBusy(false);
+    }
+  }
+
+  if (teaser) {
+    const featured = findings[0] || null;
+    const blurCount = Math.min(Math.max(hidden, 0), 3);
+    const unlockLabel = !user
+      ? "Sign in to unlock"
+      : unlockBusy
+        ? "Working…"
+        : (user.deep_credits ?? 0) > 0
+          ? "Unlock with credit"
+          : "Unlock for ₹60";
+
+    return (
+      <section className="mt-12 animate-rise">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="kicker">Preview brief</p>
+            <h2 className="mt-1 display text-3xl">One finding unlocked</h2>
+            <p className="mt-1 text-[var(--muted)]">
+              {totalSignals} signal{totalSignals === 1 ? "" : "s"} on this pass
+              {hidden > 0 ? ` · ${hidden} still locked` : ""}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--line)]/80 bg-white/50 p-1">
+            <Action href="/#scan">New scan</Action>
+            <Action href={`/?url=${encodeURIComponent(scan.url)}#scan`}>Scan again</Action>
+            <Action onClick={() => void onCopy()}>{copied ? "Copied" : "Copy link"}</Action>
           </div>
         </div>
-      )}
 
-      {showNextSteps && scan.status === "done" && !teaser && (
-        <div className="mb-8 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--brand-soft)]/35">
-          <div className="px-5 py-4 sm:px-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--brand)]">
-              What now
+        {actionError && (
+          <RetryBanner
+            message={actionError}
+            busy={unlockBusy}
+            retryLabel="Retry unlock"
+            onRetry={() => {
+              setActionError("");
+              void onUnlock();
+            }}
+          />
+        )}
+
+        {featured ? (
+          <article className="border-t border-[var(--line)] pt-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`rounded-md px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${sevClass(featured.severity)}`}
+              >
+                {featured.severity}
+              </span>
+              <span className="font-mono text-xs text-[var(--muted)]">{featured.agent}</span>
+            </div>
+            <h3 className="mt-3 display text-2xl">{featured.title}</h3>
+            {featured.explanation && (
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--ink)]">
+                {featured.explanation}
+              </p>
+            )}
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              Evidence URL, snippet, and the recommended fix unlock with the full brief.
             </p>
-            <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
+          </article>
+        ) : (
+          <p className="border-t border-[var(--line)] pt-6 text-sm text-[var(--muted)]">
+            {summary.headline || "Preview ready — unlock to open the full company brief."}
+          </p>
+        )}
+
+        {hidden > 0 && (
+          <div className="relative mt-8" aria-hidden>
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brand)]">
+              {hidden} more locked
+            </p>
+            <ul className="space-y-3">
+              {Array.from({ length: blurCount }, (_, i) => (
+                <li
+                  key={i}
+                  className="select-none overflow-hidden rounded-xl border border-[var(--line)]/70 bg-white/55 px-4 py-3 blur-[5px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="h-5 w-14 rounded bg-[var(--line)]" />
+                    <span className="h-3 w-20 rounded bg-[var(--line)]/80" />
+                  </div>
+                  <p className="mt-2 text-base font-semibold text-[var(--ink)]">
+                    {BLUR_TITLES[i % BLUR_TITLES.length]}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    Locked finding detail stays behind Pro or a deep brief.
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--bg)] to-transparent"
+              aria-hidden
+            />
+          </div>
+        )}
+
+        <div className="surface mt-10">
+          <div className="px-5 py-5 sm:px-6 sm:py-6">
+            <p className="kicker">Full brief unlocks</p>
+            <h3 className="mt-1 display text-2xl">See the rest of this scan</h3>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {PRO_UNLOCKS.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-[var(--ink)]">
+                  <span className="mt-0.5 text-[var(--brand)]" aria-hidden>
+                    ✓
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={unlockBusy}
+                onClick={() => void onUnlock()}
+                className="btn-primary"
+              >
+                {unlockLabel}
+              </button>
+              <button
+                type="button"
+                disabled={unlockBusy}
+                onClick={() => void onUpgradePro()}
+                className="btn-secondary"
+              >
+                {user ? "Upgrade to Pro" : "Sign in for Pro"}
+              </button>
+            </div>
+            {(user?.deep_credits ?? 0) > 0 && (
+              <p className="mt-3 text-xs text-[var(--muted)]">
+                {user!.deep_credits} deep credit{user!.deep_credits === 1 ? "" : "s"} ready on this
+                account.
+              </p>
+            )}
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              <Link href="/pricing" className="font-medium text-[var(--brand-deep)] hover:underline">
+                Compare plans
+              </Link>
+              {" · "}
+              Pro keeps every future scan full; ₹60 unlocks this brief once.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-12 animate-rise">
+      {showNextSteps && scan.status === "done" && (
+        <div className="surface mb-8 bg-[var(--brand-soft)]/35">
+          <div className="px-5 py-5 sm:px-6">
+            <p className="kicker">What now</p>
+            <h3 className="mt-1 display text-xl">
               {allClear ? "Looks solid — share or recheck later" : "Fix the top items, then rescan"}
             </h3>
             {!allClear && topFixes.length > 0 && (
@@ -208,41 +359,31 @@ export function ScanResults({
                 ))}
               </ol>
             )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href="/#scan"
-                className="rounded-lg bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
-              >
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link href="/#scan" className="btn-primary">
                 New scan
               </Link>
-              <Link
-                href={`/?url=${encodeURIComponent(scan.url)}#scan`}
-                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)]"
-              >
-                Scan this site again
+              <Link href={`/?url=${encodeURIComponent(scan.url)}#scan`} className="btn-secondary">
+                Scan again
               </Link>
-              <button
-                type="button"
-                onClick={() => void onCopy()}
-                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)]"
-              >
+              <button type="button" onClick={() => void onCopy()} className="btn-secondary">
                 {copied ? "Link copied" : "Share link"}
               </button>
               <a
                 href={`/v1/scans/${scan.id}/report.html`}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)]"
+                className="btn-secondary"
               >
-                Open HTML / PDF
+                HTML / PDF
               </a>
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => void onRescan()}
-                className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] disabled:opacity-50"
+                className="btn-secondary"
               >
-                {busy ? "Rescanning…" : user ? "Rescan same brief" : "Sign in to rescan"}
+                {busy ? "Rescanning…" : user ? "Rescan" : "Sign in to rescan"}
               </button>
             </div>
           </div>
@@ -251,15 +392,11 @@ export function ScanResults({
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)]">
-            {teaser ? "Preview" : "Results"}
-          </h2>
+          <h2 className="display text-3xl">Results</h2>
           <p className="mt-1 text-[var(--muted)]">
-            {teaser
-              ? `${totalSignals} signal${totalSignals === 1 ? "" : "s"} · showing 1 · ${hidden} locked`
-              : allClear
-                ? "No issues in this detect-only pass"
-                : `${actionable.length} priority · ${findings.length} listed`}{" "}
+            {allClear
+              ? "No issues in this detect-only pass"
+              : `${actionable.length} priority · ${findings.length} listed`}{" "}
             · {scan.status}
           </p>
         </div>
@@ -267,18 +404,18 @@ export function ScanResults({
           <Action href="/#scan">New scan</Action>
           <Action href={`/?url=${encodeURIComponent(scan.url)}#scan`}>Scan again</Action>
           <Action onClick={() => void onCopy()}>{copied ? "Copied" : "Copy link"}</Action>
-          {!teaser && <Action href={`/v1/scans/${scan.id}/report.html`}>HTML / PDF</Action>}
-          {!teaser && report && (
+          <Action href={`/v1/scans/${scan.id}/report.html`}>HTML / PDF</Action>
+          {report && (
             <Action href={`/v1/scans/${scan.id}/report.md`} download>
               Markdown
             </Action>
           )}
-          {!teaser && scan.status === "done" && (
+          {scan.status === "done" && (
             <Action href={`/v1/scans/${scan.id}/audit.json`} download>
               Audit
             </Action>
           )}
-          {!teaser && scan.status === "done" && (
+          {scan.status === "done" && (
             <Action disabled={busy} onClick={() => void onRescan()}>
               {busy ? "Rescanning…" : user ? "Rescan" : "Sign in to rescan"}
             </Action>
@@ -296,53 +433,41 @@ export function ScanResults({
           retryLabel="Retry action"
           onRetry={() => {
             setActionError("");
-            // Prefer unlock retry when teaser; otherwise rescan.
-            if (teaser) void onUnlock();
-            else void onRescan();
+            void onRescan();
           }}
         />
       )}
 
-      {!teaser && (
-        <div className="mb-8">
-          <h3 className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
-            What we checked
-          </h3>
-          {summary.stack && (
-            <p className="mt-1 text-xs text-[var(--muted)]">Detected stack: {summary.stack}</p>
-          )}
-          <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">{summary.headline}</p>
+      <div className="mb-8">
+        <h3 className="display text-2xl">What we checked</h3>
+        {summary.stack && (
+          <p className="mt-1 text-xs text-[var(--muted)]">Detected stack: {summary.stack}</p>
+        )}
+        <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">{summary.headline}</p>
 
-          <ul className="mt-5">
-            {(summary.agents || []).map((row) => (
-              <li
-                key={row.agent}
-                className="grid gap-1 border-t border-[var(--line)]/80 py-3 text-sm sm:grid-cols-[6.5rem_11rem_1fr] sm:items-baseline sm:gap-3"
+        <ul className="mt-5">
+          {(summary.agents || []).map((row) => (
+            <li
+              key={row.agent}
+              className="grid gap-1 border-t border-[var(--line)]/80 py-3 text-sm sm:grid-cols-[6.5rem_11rem_1fr] sm:items-baseline sm:gap-3"
+            >
+              <span
+                className={`text-xs font-semibold uppercase tracking-wide ${
+                  row.status === "attention" ? "text-[var(--warn)]" : "text-[var(--brand-deep)]"
+                }`}
               >
-                <span
-                  className={`text-xs font-semibold uppercase tracking-wide ${
-                    row.status === "attention" ? "text-[var(--warn)]" : "text-[var(--brand-deep)]"
-                  }`}
-                >
-                  {row.status === "attention" ? "Attention" : "Clear"}
-                </span>
-                <span className="font-medium text-[var(--ink)]">{row.label}</span>
-                <span className="text-[var(--muted)]">{row.note}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                {row.status === "attention" ? "Attention" : "Clear"}
+              </span>
+              <span className="font-medium text-[var(--ink)]">{row.label}</span>
+              <span className="text-[var(--muted)]">{row.note}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      {teaser && summary.headline && (
-        <p className="mb-8 text-sm leading-relaxed text-[var(--muted)]">{summary.headline}</p>
-      )}
-
-      {scan.risk_path && !allClear && !teaser && (
+      {scan.risk_path && !allClear && (
         <div className="mb-8">
-          <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
-            How this could be abused
-          </h3>
+          <h3 className="display text-xl">How this could be abused</h3>
           <p className="mt-1 text-xs text-[var(--muted)]">
             High-level story for your team — not an exploit guide.
           </p>
@@ -369,12 +494,13 @@ export function ScanResults({
 
       {findings.length > 0 && (
         <>
-          <h3 className="mb-4 font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
-            {teaser ? "One finding unlocked" : "Findings that need a look"}
-          </h3>
+          <h3 className="mb-4 display text-xl">Findings that need a look</h3>
           <ul className="flex flex-col gap-6">
             {findings.map((f: Finding, i: number) => (
-              <li key={`${f.agent}-${f.title}-${i}`} className="border-t border-[var(--line)]/80 pt-5 first:border-t-0 first:pt-0">
+              <li
+                key={`${f.agent}-${f.title}-${i}`}
+                className="border-t border-[var(--line)]/80 pt-5 first:border-t-0 first:pt-0"
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className={`rounded-md px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${sevClass(f.severity)}`}
@@ -384,7 +510,7 @@ export function ScanResults({
                   <span className="font-mono text-xs text-[var(--muted)]">{f.agent}</span>
                 </div>
                 <h3 className="mt-2 text-lg font-semibold text-[var(--ink)]">{f.title}</h3>
-                {!teaser && f.evidence_url && (
+                {f.evidence_url && (
                   <a
                     href={f.evidence_url}
                     target="_blank"
@@ -394,7 +520,7 @@ export function ScanResults({
                     {f.evidence_url}
                   </a>
                 )}
-                {!teaser && f.evidence_snippet && (
+                {f.evidence_snippet && (
                   <pre className="mt-3 overflow-x-auto rounded-lg bg-white/70 p-3 font-mono text-xs text-[var(--muted)] whitespace-pre-wrap">
                     {f.evidence_snippet}
                   </pre>
@@ -402,10 +528,10 @@ export function ScanResults({
                 {f.explanation && (
                   <p className="mt-3 text-sm leading-relaxed text-[var(--ink)]">
                     <span className="font-semibold text-[var(--brand-deep)]">Why it matters:</span>{" "}
-                    {teaser ? `${f.explanation.slice(0, 140)}${f.explanation.length > 140 ? "…" : ""}` : f.explanation}
+                    {f.explanation}
                   </p>
                 )}
-                {!teaser && f.fix && (
+                {f.fix && (
                   <p className="mt-2 text-sm leading-relaxed text-[var(--ink)]">
                     <span className="font-semibold">Fix:</span> {f.fix}
                   </p>
@@ -413,20 +539,10 @@ export function ScanResults({
               </li>
             ))}
           </ul>
-          {teaser && hidden > 0 && (
-            <div className="mt-6 rounded-xl border border-dashed border-[var(--line)] bg-white/60 px-4 py-5 text-center">
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--brand)]">
-                {hidden} more finding{hidden === 1 ? "" : "s"} locked
-              </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Evidence, fixes, risk path, and the full brief stay hidden on preview scans.
-              </p>
-            </div>
-          )}
         </>
       )}
 
-      {report && !teaser && (
+      {report && (
         <details className="mt-10 group">
           <summary className="cursor-pointer text-sm font-semibold text-[var(--brand-deep)] transition group-open:text-[var(--ink)]">
             Full markdown brief

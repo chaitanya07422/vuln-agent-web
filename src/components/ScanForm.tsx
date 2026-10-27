@@ -136,12 +136,12 @@ export function ScanForm({ initialUrl = "" }: { initialUrl?: string }) {
             placeholder="https://your-company.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="min-h-14 flex-1 rounded-xl border border-[var(--line)] bg-white px-4 text-base text-[var(--ink)] outline-none ring-[var(--brand)] placeholder:text-[#9aaca3] focus:border-[var(--brand)] focus:ring-2"
+            className="min-h-14 flex-1 rounded-xl border border-[var(--line)] bg-white px-4 text-base text-[var(--ink)] shadow-[0_1px_0_rgba(19,32,26,0.03)] outline-none ring-[var(--brand)] placeholder:text-[#9aaca3] focus:border-[var(--brand)] focus:ring-2"
           />
           <button
             type="submit"
             disabled={phase === "starting" || !attested}
-            className="min-h-14 rounded-xl bg-[var(--brand)] px-7 text-base font-semibold text-white hover:bg-[var(--brand-deep)] disabled:cursor-not-allowed disabled:opacity-45"
+            className="btn-primary min-h-14 px-7 text-base disabled:opacity-45"
           >
             {phase === "starting" ? "Starting…" : "Start scan"}
           </button>

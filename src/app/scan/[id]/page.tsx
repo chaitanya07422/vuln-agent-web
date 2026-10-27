@@ -7,6 +7,7 @@ import { PageShell } from "@/components/PageShell";
 import { ScanProgress } from "@/components/ScanProgress";
 import { ScanResults } from "@/components/ScanResults";
 import { RetryBanner } from "@/components/RetryBanner";
+import { StatusChip, statusLabelForScan, statusToneForScan } from "@/components/StatusChip";
 import { useAuth } from "@/components/AuthProvider";
 import {
   claimScan,
@@ -20,6 +21,14 @@ import {
 
 const POLL_MS = 1200;
 const MAX_TRANSIENT = 12;
+
+function hostOf(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
 
 export default function PublicScanPage() {
   const params = useParams();
@@ -64,7 +73,6 @@ export default function PublicScanPage() {
         if (cancelled) return;
         failsRef.current = 0;
         setSoftError("");
-        // Don't clear a real scan-failed message until status changes.
         if (current.status !== "failed") setError("");
         setScan(current);
         setHasClaimToken(Boolean(current.claim_token || readClaimToken(current.id)));
@@ -158,50 +166,54 @@ export default function PublicScanPage() {
   const stillLive = Boolean(scan && (scan.status === "queued" || scan.status === "running"));
   const scanFailed = scan?.status === "failed";
   const pollFailed = Boolean(error) && !scanFailed;
+  const titleHost = scan?.url ? hostOf(scan.url) : "Loading…";
+  const statusLabel = scan
+    ? statusLabelForScan(scan.status, scan.summary?.verdict)
+    : "Loading";
+  const statusTone = scan
+    ? statusToneForScan(scan.status, scan.summary?.verdict)
+    : "muted";
 
   return (
     <PageShell>
-      <div className="animate-rise pt-4">
-        <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--brand)]">
-          Shared scan
+      <div className="animate-rise">
+        <p className="kicker">
+          {stillLive ? "Live scan" : scanFailed ? "Failed scan" : "Security brief"}
         </p>
-        <h1 className="mt-2 break-all font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
-          {scan?.url || "Loading…"}
-        </h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          {scan ? (
-            <>
-              <span className="font-mono">{scan.status}</span>
-              {report && scan.status === "running" ? " · draft brief ready" : null}
-            </>
-          ) : (
-            "Loading…"
-          )}
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Link
-            href="/#scan"
-            className="inline-flex min-h-11 items-center rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
-          >
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <h1 className="display break-all text-3xl sm:text-4xl md:text-5xl">{titleHost}</h1>
+          <StatusChip label={statusLabel} tone={statusTone} />
+          {scan?.detail_level === "teaser" && <StatusChip label="Preview" tone="warn" />}
+        </div>
+        {scan?.url && (
+          <p className="mt-2 max-w-3xl truncate font-mono text-xs text-[var(--muted)] sm:text-sm">
+            {scan.url}
+            {report && scan.status === "running" ? " · draft brief ready" : null}
+          </p>
+        )}
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link href="/#scan" className="btn-primary">
             New scan
           </Link>
           {scan?.url ? (
             <Link
               href={`/?url=${encodeURIComponent(scan.url)}#scan`}
-              className="inline-flex min-h-11 items-center rounded-xl border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--brand-deep)] hover:border-[var(--brand)]"
+              className="btn-secondary"
             >
-              Scan this site again
+              Scan again
             </Link>
           ) : null}
-          <Link
-            href="/scans"
-            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-deep)]"
-          >
+          <Link href="/scans" className="btn-ghost">
             My scans
           </Link>
         </div>
 
-        {diffText && <p className="mt-4 text-sm text-[var(--brand-deep)]">{diffText}</p>}
+        {diffText && (
+          <p className="mt-5 rounded-xl border border-[var(--brand)]/15 bg-[var(--brand-soft)]/40 px-4 py-3 text-sm text-[var(--brand-deep)]">
+            {diffText}
+          </p>
+        )}
 
         {softError && stillLive && (
           <RetryBanner
@@ -248,33 +260,41 @@ export default function PublicScanPage() {
         )}
 
         {canClaim && (scan?.status === "done" || Boolean(report)) && (
-          <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-[var(--ink)]">
-            <span className="text-[var(--muted)]">Keep this brief in your account.</span>
-            <button
-              type="button"
-              disabled={claimBusy}
-              onClick={() => void onClaim()}
-              className="rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
-            >
-              {user ? (claimBusy ? "Saving…" : "Save to My scans") : "Sign in to save"}
-            </button>
-            {claimMsg && (
-              <span className="text-[var(--muted)]">
-                {claimMsg}
-                {claimMsg.toLowerCase().includes("fail") || claimMsg.toLowerCase().includes("error") ? (
-                  <>
-                    {" · "}
-                    <button
-                      type="button"
-                      className="text-[var(--brand-deep)] underline"
-                      onClick={() => void onClaim()}
-                    >
-                      Retry save
-                    </button>
-                  </>
-                ) : null}
-              </span>
-            )}
+          <div className="surface mt-6 flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
+            <div>
+              <p className="text-sm font-medium text-[var(--ink)]">Keep this brief</p>
+              <p className="mt-0.5 text-sm text-[var(--muted)]">
+                Save it to My scans so it follows your account.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                disabled={claimBusy}
+                onClick={() => void onClaim()}
+                className="btn-primary"
+              >
+                {user ? (claimBusy ? "Saving…" : "Save to My scans") : "Sign in to save"}
+              </button>
+              {claimMsg && (
+                <span className="text-sm text-[var(--muted)]">
+                  {claimMsg}
+                  {claimMsg.toLowerCase().includes("fail") ||
+                  claimMsg.toLowerCase().includes("error") ? (
+                    <>
+                      {" · "}
+                      <button
+                        type="button"
+                        className="font-medium text-[var(--brand-deep)] underline"
+                        onClick={() => void onClaim()}
+                      >
+                        Retry save
+                      </button>
+                    </>
+                  ) : null}
+                </span>
+              )}
+            </div>
           </div>
         )}
 

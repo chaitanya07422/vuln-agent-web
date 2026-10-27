@@ -11,69 +11,77 @@ export function SiteHeader() {
 
   const linkClass = (href: string) => {
     const active = pathname === href || (href !== "/" && pathname.startsWith(href));
-    return `transition hover:text-[var(--ink)] ${
-      active ? "text-[var(--ink)]" : "text-[var(--muted)]"
+    return `text-sm transition hover:text-[var(--ink)] ${
+      active ? "font-medium text-[var(--ink)]" : "text-[var(--muted)]"
     }`;
   };
 
   return (
-    <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-8 sm:py-6">
-      <Link
-        href="/"
-        className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]"
-      >
-        ScanLead
-      </Link>
-      <nav className="flex items-center gap-3 text-sm sm:gap-6">
-        <Link href="/#why" className="hidden text-[var(--muted)] transition hover:text-[var(--ink)] sm:inline">
-          Why ScanLead
+    <header className="sticky top-0 z-20 border-b border-[var(--line)]/70 bg-[var(--bg)]/80 backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8 sm:py-4">
+        <Link
+          href="/"
+          className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)] sm:text-2xl"
+        >
+          ScanLead
         </Link>
-        <Link href="/#checks" className="hidden text-[var(--muted)] transition hover:text-[var(--ink)] md:inline">
-          What we check
-        </Link>
-        <Link href="/pricing" className={`hidden sm:inline ${linkClass("/pricing")}`}>
-          Pricing
-        </Link>
-        {user ? (
-          <>
-            <Link href="/scans" className={linkClass("/scans")}>
-              My scans
-            </Link>
-            <div className="flex items-center gap-2.5 pl-1">
-              {user.plan === "pro" && <PlanBadge plan="pro" size="sm" />}
-              {user.picture ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.picture}
-                  alt=""
-                  className="h-8 w-8 rounded-full border border-[var(--line)] object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-soft)] text-xs font-semibold text-[var(--brand-deep)]">
-                  {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => void logout()}
-                className="rounded-full border border-transparent px-2.5 py-1.5 text-xs font-medium text-[var(--muted)] hover:border-[var(--line)] hover:bg-white hover:text-[var(--ink)]"
-              >
-                Sign out
-              </button>
-            </div>
-          </>
-        ) : (
-          <button
-            type="button"
-            disabled={loading}
-            onClick={login}
-            className="rounded-full border border-[var(--line)] bg-white/90 px-4 py-2 font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] hover:bg-white disabled:opacity-50"
+        <nav className="flex items-center gap-3 sm:gap-5">
+          <Link
+            href="/#why"
+            className="hidden text-sm text-[var(--muted)] transition hover:text-[var(--ink)] sm:inline"
           >
-            Sign in
-          </button>
-        )}
-      </nav>
+            Why
+          </Link>
+          <Link
+            href="/#checks"
+            className="hidden text-sm text-[var(--muted)] transition hover:text-[var(--ink)] md:inline"
+          >
+            Checks
+          </Link>
+          <Link href="/pricing" className={linkClass("/pricing")}>
+            Pricing
+          </Link>
+          {user ? (
+            <>
+              <Link href="/scans" className={linkClass("/scans")}>
+                My scans
+              </Link>
+              <div className="flex items-center gap-2 border-l border-[var(--line)]/80 pl-3 sm:pl-4">
+                {user.plan === "pro" && <PlanBadge plan="pro" size="sm" />}
+                {user.picture ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.picture}
+                    alt=""
+                    className="h-8 w-8 rounded-full border border-[var(--line)] object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-soft)] text-xs font-semibold text-[var(--brand-deep)]">
+                    {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="hidden rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--muted)] hover:bg-white/80 hover:text-[var(--ink)] sm:inline"
+                >
+                  Sign out
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={login}
+              className="rounded-full border border-[var(--line)] bg-white/90 px-3.5 py-1.5 text-sm font-medium text-[var(--brand-deep)] hover:border-[var(--brand)] hover:bg-white disabled:opacity-50 sm:px-4 sm:py-2"
+            >
+              Sign in
+            </button>
+          )}
+        </nav>
+      </div>
     </header>
   );
 }

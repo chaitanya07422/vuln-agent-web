@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export function PageShell({
@@ -10,7 +11,7 @@ export function PageShell({
   narrow?: boolean;
 }) {
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
@@ -24,22 +25,41 @@ export function PageShell({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.28]"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.22]"
         style={{
           backgroundImage:
             "linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px)",
           backgroundSize: "72px 72px",
-          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.5), transparent 68%)",
+          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.45), transparent 62%)",
         }}
       />
       <SiteHeader />
       <main
-        className={`mx-auto w-full px-5 pb-20 pt-4 sm:px-8 ${
+        className={`mx-auto w-full flex-1 px-5 pb-16 pt-6 sm:px-8 sm:pt-8 ${
           narrow ? "max-w-3xl" : "max-w-6xl"
         }`}
       >
         {children}
       </main>
+      <footer className="mt-auto border-t border-[var(--line)]/80 bg-white/70">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <Link
+            href="/"
+            className="font-[family-name:var(--font-display)] text-lg text-[var(--ink)]"
+          >
+            ScanLead
+          </Link>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href="/pricing" className="hover:text-[var(--ink)]">
+              Pricing
+            </Link>
+            <Link href="/scans" className="hover:text-[var(--ink)]">
+              My scans
+            </Link>
+            <span>Authorized targets only</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

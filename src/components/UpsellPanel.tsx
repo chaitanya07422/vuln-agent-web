@@ -49,32 +49,26 @@ export function UpsellPanel({
         : "You’ve used your 2 full Free briefs. Further scans stay preview-only until you upgrade to Pro or buy a ₹60 deep brief.";
 
   return (
-    <div className="animate-rise overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bg-elevated)]">
-      <div className="border-b border-[var(--line)]/80 bg-[var(--brand-soft)]/40 px-5 py-4 sm:px-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--brand)]">
+    <div className="surface animate-rise">
+      <div className="border-b border-[var(--line)]/80 bg-[var(--brand-soft)]/35 px-5 py-5 sm:px-6">
+        <p className="kicker">
           {reason === "guest"
             ? "Guest limit reached"
             : reason === "teaser"
               ? "Preview locked"
               : "Full Free briefs used"}
         </p>
-        <h3 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--ink)]">
-          {title}
-        </h3>
+        <h3 className="mt-2 display text-2xl">{title}</h3>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">{body}</p>
         {reason === "guest" || reason === "teaser" ? (
-          <button
-            type="button"
-            onClick={() => login()}
-            className="mt-4 rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
-          >
+          <button type="button" onClick={() => login()} className="btn-primary mt-4">
             Sign in with Google
           </button>
         ) : null}
       </div>
       <div className="grid gap-0 sm:grid-cols-2">
         <div className="border-b border-[var(--line)]/70 px-5 py-5 sm:border-b-0 sm:border-r sm:px-6">
-          <p className="font-[family-name:var(--font-display)] text-xl text-[var(--ink)]">Pro</p>
+          <p className="display text-xl">Pro</p>
           <p className="mt-1 text-2xl font-semibold tracking-tight text-[var(--ink)]">
             ₹999<span className="text-sm font-normal text-[var(--muted)]">/mo</span>
           </p>
@@ -87,13 +81,13 @@ export function UpsellPanel({
             type="button"
             disabled={busy !== null}
             onClick={() => void buy("pro")}
-            className="mt-5 min-h-11 w-full rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--brand-deep)] disabled:opacity-50"
+            className="btn-primary mt-5 w-full"
           >
             {busy === "pro" ? "Redirecting…" : user ? "Upgrade to Pro" : "Sign in to upgrade"}
           </button>
         </div>
         <div className="px-5 py-5 sm:px-6">
-          <p className="font-[family-name:var(--font-display)] text-xl text-[var(--ink)]">Deep brief</p>
+          <p className="display text-xl">Deep brief</p>
           <p className="mt-1 text-2xl font-semibold tracking-tight text-[var(--ink)]">
             ₹60<span className="text-sm font-normal text-[var(--muted)]"> once</span>
           </p>
@@ -106,7 +100,7 @@ export function UpsellPanel({
             type="button"
             disabled={busy !== null}
             onClick={() => void buy("deep")}
-            className="mt-5 min-h-11 w-full rounded-xl border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--brand-deep)] hover:border-[var(--brand)] disabled:opacity-50"
+            className="btn-secondary mt-5 w-full"
           >
             {busy === "deep" ? "Redirecting…" : user ? "Buy ₹60 credit" : "Sign in to buy"}
           </button>
