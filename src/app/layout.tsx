@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope, IBM_Plex_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ScanLiveLockProvider } from "@/components/ScanLiveLock";
 import "./globals.css";
 
 const display = Fraunces({
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${display.variable} ${body.variable} ${mono.variable} antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ScanLiveLockProvider>{children}</ScanLiveLockProvider>
+        </AuthProvider>
       </body>
     </html>
   );

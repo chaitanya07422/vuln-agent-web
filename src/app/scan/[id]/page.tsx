@@ -8,6 +8,7 @@ import { ScanProgress } from "@/components/ScanProgress";
 import { ScanResults } from "@/components/ScanResults";
 import { RetryBanner } from "@/components/RetryBanner";
 import { StatusChip, statusLabelForScan, statusToneForScan } from "@/components/StatusChip";
+import { useSetScanLiveLock } from "@/components/ScanLiveLock";
 import { useAuth } from "@/components/AuthProvider";
 import {
   claimScan,
@@ -166,6 +167,7 @@ export default function PublicScanPage() {
   const stillLive = Boolean(scan && (scan.status === "queued" || scan.status === "running"));
   const scanFailed = scan?.status === "failed";
   const pollFailed = Boolean(error) && !scanFailed;
+  useSetScanLiveLock(stillLive);
   const titleHost = scan?.url ? hostOf(scan.url) : "Loading…";
   const statusLabel = scan
     ? statusLabelForScan(scan.status, scan.summary?.verdict)
@@ -188,25 +190,45 @@ export default function PublicScanPage() {
         {scan?.url && (
           <p className="mt-2 max-w-3xl truncate font-mono text-xs text-[var(--muted)] sm:text-sm">
             {scan.url}
-            {report && scan.status === "running" ? " · draft brief ready" : null}
           </p>
         )}
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Link href="/#scan" className="btn-primary">
-            New scan
-          </Link>
-          {scan?.url ? (
-            <Link
-              href={`/?url=${encodeURIComponent(scan.url)}#scan`}
-              className="btn-secondary"
-            >
-              Scan again
-            </Link>
-          ) : null}
-          <Link href="/scans" className="btn-ghost">
-            My scans
-          </Link>
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          {stillLive ? (
+            <>
+              <button type="button" disabled className="btn-primary" title="Available when this scan finishes">
+                New scan
+              </button>
+              {scan?.url ? (
+                <button type="button" disabled className="btn-secondary" title="Available when this scan finishes">
+                  Scan again
+                </button>
+              ) : null}
+              <button type="button" disabled className="btn-ghost" title="Available when this scan finishes">
+                My scans
+              </button>
+              <span className="w-full text-xs text-[var(--muted)] sm:ml-1 sm:w-auto">
+                Actions unlock when the scan finishes
+              </span>
+            </>
+          ) : (
+            <>
+              <Link href="/#scan" className="btn-primary">
+                New scan
+              </Link>
+              {scan?.url ? (
+                <Link
+                  href={`/?url=${encodeURIComponent(scan.url)}#scan`}
+                  className="btn-secondary"
+                >
+                  Scan again
+                </Link>
+              ) : null}
+              <Link href="/scans" className="btn-ghost">
+                My scans
+              </Link>
+            </>
+          )}
         </div>
 
         {diffText && (
@@ -259,7 +281,7 @@ export default function PublicScanPage() {
           />
         )}
 
-        {canClaim && (scan?.status === "done" || Boolean(report)) && (
+        {canClaim && scan?.status === "done" && (
           <div className="surface mt-6 flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
             <div>
               <p className="text-sm font-medium text-[var(--ink)]">Keep this brief</p>
@@ -298,21 +320,19 @@ export default function PublicScanPage() {
           </div>
         )}
 
-        {scan &&
-          !scanFailed &&
-          (scan.status === "done" || (scan.findings && scan.findings.length > 0) || report) && (
-            <ScanResults
-              scan={scan}
-              report={report}
-              showNextSteps={scan.status === "done"}
-              onScanUpdate={(updated) => {
-                setScan(updated);
-                if (updated.detail_level !== "teaser") {
-                  void tryLoadReport(updated.id);
-                }
-              }}
-            />
-          )}
+        {scan && scan.status === "done" && (
+          <ScanResults
+            scan={scan}
+            report={report}
+            showNextSteps
+            onScanUpdate={(updated) => {
+              setScan(updated);
+              if (updated.detail_level !== "teaser") {
+                void tryLoadReport(updated.id);
+              }
+            }}
+          />
+        )}
       </div>
     </PageShell>
   );
