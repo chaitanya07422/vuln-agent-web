@@ -71,6 +71,13 @@ export type ScanListItem = {
   parent_scan_id?: string | null;
 };
 
+export type QuotaBucket = {
+  limit: number;
+  used: number;
+  remaining: number;
+  can_scan: boolean;
+};
+
 export type QuotaInfo = {
   mode: "guest" | "free" | "pro" | string;
   limit: number;
@@ -84,6 +91,9 @@ export type QuotaInfo = {
   full_used?: number;
   full_remaining?: number;
   next_detail?: "full" | "teaser" | string;
+  channel?: "web" | "mcp" | string;
+  web?: QuotaBucket;
+  mcp?: QuotaBucket;
 };
 
 export type QuotaErrorCode = "GUEST_QUOTA_EXCEEDED" | "FREE_QUOTA_EXCEEDED" | string;
@@ -306,6 +316,59 @@ export async function syncBilling(): Promise<{
 
 export async function getPlans() {
   const res = await fetch("/v1/billing/plans", { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export type ApiKeyMeta = {
+  id: string;
+  prefix: string;
+  name?: string;
+  created_at?: string;
+  last_used_at?: string | null;
+};
+
+export async function listApiKeys(): Promise<{
+  keys: ApiKeyMeta[];
+  limit: number;
+  mcp_free_limit?: number;
+}> {
+  const res = await fetch("/v1/me/api-keys", {
+    cache: "no-store",
+    headers: authHeaders(),
+    credentials: "include",
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function createApiKey(
+  name = "",
+): Promise<{
+  key: ApiKeyMeta;
+  api_key: string;
+  keys: ApiKeyMeta[];
+  limit: number;
+  mcp_free_limit?: number;
+}> {
+  const res = await fetch("/v1/me/api-keys", {
+    method: "POST",
+    headers: authHeaders({ "content-type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function deleteApiKey(
+  keyId: string,
+): Promise<{ ok: boolean; keys: ApiKeyMeta[]; limit: number; mcp_free_limit?: number }> {
+  const res = await fetch(`/v1/me/api-keys/${encodeURIComponent(keyId)}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+    credentials: "include",
+  });
   if (!res.ok) throw await parseError(res);
   return res.json();
 }

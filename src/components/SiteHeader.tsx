@@ -93,6 +93,9 @@ export function SiteHeader() {
                   <Link href="/scans" className={linkClass("/scans")}>
                     My scans
                   </Link>
+                  <Link href="/settings" className={linkClass("/settings")} title="API keys · MCP Agent">
+                    Settings
+                  </Link>
                   <div className="flex items-center gap-2 border-l border-[var(--line)]/80 pl-3 sm:pl-4">
                     {user.plan === "pro" && <PlanBadge plan="pro" size="sm" />}
                     {user.picture ? (

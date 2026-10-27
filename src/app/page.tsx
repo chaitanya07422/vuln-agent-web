@@ -231,7 +231,7 @@ export default function Home() {
             <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
               Built for trust
             </h2>
-            <div className="mt-10 grid gap-10 md:grid-cols-3">
+            <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
                   n: "01",
@@ -247,6 +247,11 @@ export default function Home() {
                   n: "03",
                   t: "Company-ready brief",
                   b: "Severity, evidence, fixes, and a checklist you can share with your team.",
+                },
+                {
+                  n: "04",
+                  t: "MCP Agent in Cursor",
+                  b: "Create an API key in Settings, then start scans and fetch briefs from Cursor Agent — results save to your account.",
                 },
               ].map((item) => (
                 <div key={item.n}>

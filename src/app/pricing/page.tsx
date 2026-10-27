@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { PlanBadge } from "@/components/PlanBadge";
@@ -133,6 +134,16 @@ function PricingBody() {
             <li>After signup: 2 full Free briefs</li>
             <li>Then preview-only until upgrade</li>
             <li>Share links · watermarked PDF</li>
+            <li>
+              <span className="font-medium text-[var(--ink)]">MCP Agent</span>
+              {" · "}1 Free Cursor scan
+              <span className="mt-0.5 block text-xs">
+                Create an API key in{" "}
+                <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
+                  Settings
+                </Link>
+              </span>
+            </li>
           </ul>
         </div>
 
@@ -180,6 +191,16 @@ function PricingBody() {
             <li>Full branded PDF / HTML</li>
             <li>Rescan + finding diff</li>
             <li>Higher rate limits</li>
+            <li>
+              <span className="font-medium text-[var(--ink)]">MCP Agent</span>
+              {" · "}web + Cursor share one Pro quota
+              <span className="mt-0.5 block text-xs">
+                API keys in{" "}
+                <Link href="/settings" className="font-medium text-[var(--brand-deep)] underline-offset-2 hover:underline">
+                  Settings
+                </Link>
+              </span>
+            </li>
           </ul>
 
           {isPro ? (
